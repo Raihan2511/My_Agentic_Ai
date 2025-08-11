@@ -9,7 +9,7 @@ import os
 from langchain.prompts import PromptTemplate
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
-
+from langchain.agents import create_tool_calling_agent,AgentExecutor
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -45,28 +45,70 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-thinking-exp-1219",google_a
 # response=llm.invoke("Hello, how are you?")
 # print(response)
 parser=PydanticOutputParser(pydantic_object=Mymodel)
+from langchain.prompts import PromptTemplate
+
+
+
+
 agent_prompt = PromptTemplate(
-    input_variables=["role", "goal", "tools", "user_input"],
+    input_variables=[
+        "system",
+        "chat_history",
+        "human_input",
+        "agent_scratchpad"
+    ],
     template="""
-You are a {role} AI agent.
+[System]
+{system}
 
-Your Goal:
-{goal}
+--- Chat History (most recent last) ---
+{chat_history}
 
-Available Tools:
-{tools}
+--- Human Query ---
+{human_input}
+
+--- Agent Scratchpad (planning / tool calls — keep private) ---
+{agent_scratchpad}
 
 Instructions:
-1. Think through the problem step-by-step before answering.
-2. If tools are available, decide if one should be used.
-3. Clearly explain intermediate reasoning only if needed.
-4. Always provide a **Final Answer** section with your solution.
-
-User Request:
-{user_input}
+1. Think step-by-step before answering.
+2. If a tool should be used, call it and record results into the scratchpad.
+3. Only reveal intermediate reasoning in the response if explicitly requested by the user.
+4. Always finish with a clear **Final Answer** section.
 
 Begin reasoning now.
 """
 )
 
+agent=create_tool_calling_agent(
+    llm=llm,
+    prompt=agent_prompt,
+    tools=[]
+)
 
+agent_executor = AgentExecutor(
+    agent=agent,
+    tools=[],
+    verbose=True
+)
+# --- Invoking the Agent (Corrected Code) ---
+
+# This is the string that will be passed to the {system} variable in the prompt.
+system_prompt_content = "You are a helpful and friendly AI assistant."
+
+# Now, we invoke the agent. Notice how the keys in this dictionary
+# EXACTLY match the 'input_variables' in the PromptTemplate.
+raw_response = agent_executor.invoke({
+    # The key is 'human_input', not 'query'
+    "human_input": "What is the capital of France?",
+    
+    # We provide the content for the 'system' variable
+    "system": system_prompt_content,
+    
+    # For a new conversation, 'chat_history' can be an empty list.
+    # The agent framework often expects a list of messages here.
+    "chat_history": []
+})
+
+print("\n\n--- FINAL RESPONSE ---")
+print(raw_response)
