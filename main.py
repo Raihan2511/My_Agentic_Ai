@@ -1,3 +1,11 @@
+import sys
+import os
+
+# Add project root to sys.path
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(PROJECT_ROOT)
+
+
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from langchain_openai import ChatOpenAI
@@ -10,6 +18,12 @@ from langchain.prompts import PromptTemplate
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain.agents import create_tool_calling_agent,AgentExecutor
+from langchain.prompts import PromptTemplate
+from Backend.Tools.custom_tool.hello import print_hello_tool
+
+
+
+
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -44,71 +58,72 @@ class Mymodel(BaseModel):
 llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-thinking-exp-1219",google_api_key=api_key)
 # response=llm.invoke("Hello, how are you?")
 # print(response)
-parser=PydanticOutputParser(pydantic_object=Mymodel)
-from langchain.prompts import PromptTemplate
 
 
 
+# Get the parser and instructions
+parser = PydanticOutputParser(pydantic_object=Mymodel)
+format_instructions = parser.get_format_instructions()
 
 agent_prompt = PromptTemplate(
-    input_variables=[
-        "system",
-        "chat_history",
-        "human_input",
-        "agent_scratchpad"
-    ],
+    input_variables=["system", "chat_history", "human_input", "agent_scratchpad", "format_instructions"],
     template="""
 [System]
 {system}
 
---- Chat History (most recent last) ---
+--- Chat History ---
 {chat_history}
 
 --- Human Query ---
 {human_input}
 
---- Agent Scratchpad (planning / tool calls — keep private) ---
+--- Agent Scratchpad ---
 {agent_scratchpad}
 
-Instructions:
-1. Think step-by-step before answering.
-2. If a tool should be used, call it and record results into the scratchpad.
-3. Only reveal intermediate reasoning in the response if explicitly requested by the user.
-4. Always finish with a clear **Final Answer** section.
-
-Begin reasoning now.
+You must format your final response as a JSON object that matches this schema:
+{format_instructions}
 """
 )
 
-agent=create_tool_calling_agent(
+tools=[print_hello_tool]
+agent = create_tool_calling_agent(
     llm=llm,
-    prompt=agent_prompt,
-    tools=[]
+    prompt=agent_prompt.partial(format_instructions=format_instructions),
+    tools=tools
 )
 
-agent_executor = AgentExecutor(
-    agent=agent,
-    tools=[],
-    verbose=True
-)
-# --- Invoking the Agent (Corrected Code) ---
+agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
-# This is the string that will be passed to the {system} variable in the prompt.
-system_prompt_content = "You are a helpful and friendly AI assistant."
+# raw_response = agent_executor.invoke({
+#     "human_input": "What is the essence of langgraph?",
+#     "system": "You are a helpful and friendly AI assistant.",
+#     "chat_history": []
+# })
 
-# Now, we invoke the agent. Notice how the keys in this dictionary
-# EXACTLY match the 'input_variables' in the PromptTemplate.
+# raw_response = agent_executor.invoke({
+#     "human_input": "Can you teel which tools are available in this system?",
+#     "system": "You are a helpful and friendly AI assistant.",
+#     "chat_history": []
+# })
+
 raw_response = agent_executor.invoke({
-    # The key is 'human_input', not 'query'
-    "human_input": "What is the capital of France?",
-    
-    # We provide the content for the 'system' variable
-    "system": system_prompt_content,
-    
-    # For a new conversation, 'chat_history' can be an empty list.
-    # The agent framework often expects a list of messages here.
+    "human_input": "Please use the hello tool to say hello.",
+    "system": "You are a helpful and friendly AI assistant.",
     "chat_history": []
 })
 
-print("\n\n--- FINAL RESPONSE ---")
-print(raw_response)
+
+# print("\n--- RAW RESPONSE ---")
+# print(raw_response)
+
+# Now this works because output is valid JSON for Mymodel
+
+try:
+    structure_response = parser.parse(raw_response.get("output"))
+    print("\n--- STRUCTURED RESPONSE ---")
+    print(structure_response)
+except Exception as e:
+    print("\n--- ERROR PARSING RESPONSE ---")
+    print(f"Error: {e}")
+    print("Raw output was:")
+    print(raw_response.get("output"))
