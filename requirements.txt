@@ -9,3 +9,13 @@ genai
 langchain-google-genai
 google-generativeai
 requests
+imapclient
+mail-parser
+beautifulsoup4
+lxml
+html2text
+pytz
+babel
+sqlite-utils
+typer
+rich
