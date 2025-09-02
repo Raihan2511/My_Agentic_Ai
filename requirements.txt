@@ -1,3 +1,5 @@
+genai
+tiktoken==0.7.0
 langchain
 wikipedia
 langchain-community
@@ -5,7 +7,6 @@ langchain-openai
 langchain-anthropic
 python-dotenv
 pydantic
-genai
 langchain-google-genai
 google-generativeai
 requests
