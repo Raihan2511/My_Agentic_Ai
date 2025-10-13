@@ -1,16 +1,20 @@
 # from superagi.tools.base_tool import BaseToolkit, BaseTool, ToolConfiguration
 # tools/email_toolkit.py
+import os 
+import sys
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
 from typing import List
-from tool_framework.base_tool import BaseTool
-from tool_framework.base_toolkit import BaseToolkit
-from tool_framework.tool_config import ToolConfiguration, ToolConfigKeyType
-
-
+from Backend.tool_framework.base_tool import BaseTool
+from Backend.tool_framework.base_toolkit import BaseToolkit
+from Backend.tool_framework.tool_config import ToolConfiguration
+# , ToolConfigKeyType
 from abc import ABC
-from typing import Type, List
-from Tools.email.read_email import ReadEmailTool
-from Tools.email.send_email import SendEmailTool
-from Tools.email.send_email_attachment import SendEmailAttachmentTool
+from typing import List
+from Backend.Tools.email.read_email import ReadEmailTool
+from Backend.Tools.email.send_email import SendEmailTool
+# from Backend.Tools.email.send_email_attachment import SendEmailAttachmentTool
 from Backend.types.key_type import ToolConfigKeyType
 
 
