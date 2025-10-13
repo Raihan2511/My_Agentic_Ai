@@ -37,7 +37,10 @@ class BaseToolkitConfiguration:
         if not isinstance(key, str):
             return None
         return os.getenv(key)
-
+# Add this simple helper function at the top of the file
+def get_config(key, default=None):
+    """A simple function to get a value from environment variables."""
+    return os.getenv(key, default)
 class BaseTool(BaseModel, ABC):
     """Abstract Base Class for all Tools."""
     name: str
@@ -47,6 +50,16 @@ class BaseTool(BaseModel, ABC):
 
     class Config:
         arbitrary_types_allowed = True
+
+
+    # --- THIS IS THE MISSING PROPERTY ---
+    @property
+    def max_token_limit(self) -> int:
+        """The maximum number of tokens allowed for tool output."""
+        # This will get the limit from your .env file, or default to 800
+        return int(get_config("MAX_TOOL_TOKEN_LIMIT", 800))
+    # --- END OF MISSING PROPERTY ---
+
 
     @property
     def args(self) -> dict:
