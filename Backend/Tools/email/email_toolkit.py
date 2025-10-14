@@ -1,5 +1,4 @@
-# from superagi.tools.base_tool import BaseToolkit, BaseTool, ToolConfiguration
-# tools/email_toolkit.py
+# Tools/email/email_toolkit.py
 import os 
 import sys
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
