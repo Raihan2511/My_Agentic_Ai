@@ -13,3 +13,4 @@ langchain-google-genai
 transformers
 tiktoken
 langgraph
+torch
