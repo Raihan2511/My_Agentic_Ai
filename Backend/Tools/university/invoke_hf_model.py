@@ -1,8 +1,19 @@
 import os
 import sys
 import torch
+from typing import Type, Any, Optional
+
 from pydantic import BaseModel, Field
-from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
+from langchain_google_genai import ChatGoogleGenerativeAI
+
+# --- Transformers/PEFT Imports ---
+from transformers import (
+    pipeline, 
+    AutoModelForSeq2SeqLM,
+    AutoTokenizer, 
+    BitsAndBytesConfig
+)
+from peft import PeftModel
 
 # --- Project Path Setup ---
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
@@ -11,86 +22,224 @@ if PROJECT_ROOT not in sys.path:
 
 from Backend.tool_framework.base_tool import BaseTool
 
-# --- Pydantic Input Schema (No changes here) ---
+# --- Pydantic Input Schema ---
 class InvokeHFModelInput(BaseModel):
-    student_name: str = Field(..., description="The full name of the student.")
-    course_id: str = Field(..., description="The course ID for the registration or query.")
-    query_text: str = Field(..., description="The original request or question from the student's email.")
+    query_text: str = Field(..., description="The full, original email body or query text to be processed.")
 
-# --- Tool Class Definition (Modified for Direct Model Loading) ---
+# --- Tool Class Definition ---
 class InvokeHFModelTool(BaseTool):
     """
-    A tool that loads a fine-tuned model directly into memory from a local path
-    and uses it to process student and course data.
+    A "smart router" tool. It classifies a query, then loads the correct
+    QLoRA adapter onto a base model to generate the final XML.
     """
     name: str = "Invoke_University_AI_Model"
-    description: str = "Use this tool to process student data with the specialized university AI model."
-    args_schema = InvokeHFModelInput
+    description: str = "Processes a query by routing it to the correct specialized AI model (e.g., course offering, instructor preference) and returns the result as an XML string."
+    
+    # --- Pydantic v2 Fix ---
+    args_schema: Type[BaseModel] = InvokeHFModelInput
 
-    # --- NEW: Attributes to hold the loaded model ---
-    generator_pipeline = None
-    model_path: str = None
+    # --- Attributes for ALL models ---
+    classifier_llm: Optional[Any] = None
+    
+    # Pipelines will be loaded lazily (on-demand)
+    offering_pipeline: Optional[Any] = None
+    preference_pipeline: Optional[Any] = None
+    
+    # Store tokenizer to avoid reloading
+    tokenizer: Optional[Any] = None
+    
+    # Store paths from config
+    base_model_id: Optional[str] = None
+    offering_adapter_path: Optional[str] = None
+    preference_adapter_path: Optional[str] = None
+
 
     def __init__(self, **data):
+        """
+        Initializes the tool.
+        - Loads the classifier LLM immediately.
+        - Stores model paths for lazy loading fine-tuned models.
+        """
         super().__init__(**data)
-        # Load the model only once when the tool is initialized.
-        self._initialize_model()
-
-    def _initialize_model(self):
-        """Loads the model and tokenizer into memory. This is called only once."""
-        if self.generator_pipeline:
-            # Model is already loaded
-            return
-
-        self.model_path = self.get_tool_config("LOCAL_MODEL_PATH")
-        if not self.model_path:
-            print("Error: LOCAL_MODEL_PATH is not configured. The model will not be loaded.")
-            return
-
-        try:
-            print(f"Initializing model from local path: {self.model_path}...")
-            
-            # Check for GPU availability
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            print(f"Using device: {device}")
-
-            # Use the transformers pipeline for easy text generation
-            # This handles tokenization, model inference, and decoding for you.
-            self.generator_pipeline = pipeline(
-                "text-generation",
-                model=self.model_path,
-                torch_dtype=torch.float16, # Use float16 for better performance on GPUs
-                device=device,
-            )
-            print("Model loaded successfully.")
-
-        except Exception as e:
-            print(f"Error: Failed to load model from {self.model_path}. Exception: {e}")
-            self.generator_pipeline = None
-
-
-    def _execute(self, student_name: str, course_id: str, query_text: str) -> str:
-        # Check if the model failed to load during initialization
-        if not self.generator_pipeline:
-            return "Error: The AI model is not loaded. Please check the configuration and logs."
-
-        # Format the prompt exactly as your model expects.
-        # For instruction-tuned models, you might need a specific format.
-        # This is a generic example.
-        prompt = f"Process enrollment for student '{student_name}' in course '{course_id}'. Original query: '{query_text}'"
         
-        try:
-            print(f"Generating response for prompt: '{prompt[:100]}...'")
-            outputs = self.generator_pipeline(
-                prompt,
-                max_new_tokens=512,
-                num_return_sequences=1,
-                eos_token_id=self.generator_pipeline.tokenizer.eos_token_id,
-            )
+        # 1. Load the Gemini classifier
+        self._initialize_classifier()
+        
+        # 2. Store paths for on-demand QLoRA model loading
+        self.base_model_id = self.get_tool_config("BASE_MODEL_ID")
+        self.offering_adapter_path = self.get_tool_config("OFFERING_MODEL_PATH")
+        self.preference_adapter_path = self.get_tool_config("PREFERENCE_MODEL_PATH")
+        
+        if not self.base_model_id:
+            print("Error: BASE_MODEL_ID is not configured. This is required to load QLoRA adapters.")
+        if not self.offering_adapter_path or not self.preference_adapter_path:
+            print("Error: Adapter paths (OFFERING_MODEL_PATH, PREFERENCE_MODEL_PATH) are not configured.")
 
-            # The pipeline output includes the original prompt. We need to extract only the new text.
+    def _initialize_classifier(self):
+        """Loads only the Gemini classifier LLM."""
+        if self.classifier_llm:
+            return
+            
+        print("Initializing models...")
+        try:
+            google_api_key = self.get_tool_config("GOOGLE_API_KEY")
+            if not google_api_key:
+                raise ValueError("GOOGLE_API_KEY not found in config.")
+            self.classifier_llm = ChatGoogleGenerativeAI(
+                model="gemini-1.5-flash-latest", 
+                google_api_key=google_api_key,
+                temperature=0.0 # Deterministic classification
+            )
+            print("Classifier LLM (Gemini) initialized.")
+        except Exception as e:
+            print(f"Error: Failed to initialize Classifier LLM. Exception: {e}")
+
+    def _load_qlora_pipeline(self, adapter_path: str) -> Any:
+        """
+        Loads the 4-bit base model (codet5p), attaches the specified QLoRA adapter,
+        merges it, and returns a "text2text-generation" pipeline.
+        
+        This function is based *exactly* on the loading code you provided.
+        """
+        try:
+            print(f"Loading QLoRA model. Base: '{self.base_model_id}', Adapter: '{adapter_path}'")
+
+            # Load the tokenizer (only once)
+            if not self.tokenizer:
+                print("Loading tokenizer...")
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    self.base_model_id,
+                    trust_remote_code=True,
+                    add_bos_token=True,
+                    add_eos_token=True,
+                    use_fast=False
+                )
+            
+            # Configure 4-bit quantization
+            bnb_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.float16,
+            )
+            
+            # Load the base model in 4-bit
+            print("Loading 4-bit base model...")
+            base_model = AutoModelForSeq2SeqLM.from_pretrained(
+                self.base_model_id,
+                quantization_config=bnb_config,
+                device_map="auto",
+                trust_remote_code=True,
+                torch_dtype=torch.float16 # Added for consistency
+            )
+            print(f"Base model loaded.")
+
+            # Load the PEFT model (apply adapter)
+            print(f"Loading adapter from: {adapter_path}")
+            model = PeftModel.from_pretrained(base_model, adapter_path)
+            print(f"Adapter loaded.")
+            
+            # Merge the adapter into the base model for faster inference
+            print("Merging adapter...")
+            model = model.merge_and_unload()
+            model.eval() # Set to evaluation mode
+            print("Adapter merged and unloaded.")
+
+            # Create the pipeline
+            model_pipeline = pipeline(
+                "text2text-generation", # Correct pipeline for T5 models
+                model=model,
+                tokenizer=self.tokenizer,
+                device_map="auto",
+                torch_dtype=torch.float16
+            )
+            print("✅ Model pipeline is ready!")
+            return model_pipeline
+        
+        except Exception as e:
+            print(f"Error: Failed to load QLoRA model. Exception: {e}")
+            print("Please ensure 'peft', 'bitsandbytes', and 'accelerate' are installed.")
+            return None
+
+    def _classify_intent(self, query: str) -> str:
+        """Uses the LLM to classify the query text."""
+        if not self.classifier_llm:
+            return "Error: Classifier model is not loaded."
+
+        prompt = f"""
+        Classify the following university-related query into one of the following exact categories:
+        - Course_Offering (for adding new classes, student registrations, etc.)
+        - Instructor_Preference (for teacher preferences, room features, time constraints)
+        - Other (for anything else)
+        
+        Respond with *only* the category name and nothing else.
+        
+        Query: "{query}"
+        """
+        try:
+            response = self.classifier_llm.invoke(prompt)
+            intent = response.content.strip()
+            
+            if intent in ["Course_Offering", "Instructor_Preference", "Other"]:
+                return intent
+            else:
+                return "Other" # Default to 'Other' if classification fails
+        except Exception as e:
+            return f"Error: Classification failed: {e}"
+
+    def _execute(self, query_text: str) -> str:
+        """
+        Main execution logic:
+        1. Classify intent.
+        2. Lazily load the correct QLoRA model.
+        3. Run the model to get XML.
+        4. Return the XML.
+        """
+        if not self.classifier_llm:
+            return "Error: Classifier AI model is not loaded."
+        if not self.base_model_id or not self.offering_adapter_path or not self.preference_adapter_path:
+             return "Error: Model paths are not configured. Cannot load QLoRA models."
+
+        # --- Step 1: Classify the Intent ---
+        print(f"Classifying query: '{query_text[:100]}...'")
+        intent = self._classify_intent(query_text)
+        print(f"Query classified as: {intent}")
+
+        # --- Step 2: Route & Lazy-Load the Correct Model ---
+        pipeline_to_use = None
+        if intent == "Course_Offering":
+            # Load the model "lazily" (only when needed)
+            if not self.offering_pipeline:
+                self.offering_pipeline = self._load_qlora_pipeline(self.offering_adapter_path)
+            pipeline_to_use = self.offering_pipeline
+            
+        elif intent == "Instructor_Preference":
+            # Load the model "lazily"
+            if not self.preference_pipeline:
+                self.preference_pipeline = self._load_qlora_pipeline(self.preference_adapter_path)
+            pipeline_to_use = self.preference_pipeline
+
+        elif "Error" in intent:
+            return intent # Return the classification error
+        else:
+            return "Error: Query classified as 'Other'. No specialized model available for this request."
+
+        if not pipeline_to_use:
+             return f"Error: Failed to load the model for intent '{intent}'."
+
+        # --- Step 3: Run the Specialized Model ---
+        try:
+            print(f"Generating XML with {intent} model...")
+            outputs = pipeline_to_use(
+                query_text,
+                max_new_tokens=512, # You can adjust this
+                num_return_sequences=1
+            )
+            
+            # --- CORRECTED XML EXTRACTION ---
+            # For "text2text-generation", the output is clean
+            # and does NOT include the prompt.
             generated_text = outputs[0]['generated_text']
-            response_text = generated_text[len(prompt):].strip()
+            response_text = generated_text.strip()
             
             return response_text
 

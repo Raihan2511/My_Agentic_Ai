@@ -1,3 +1,4 @@
+
 import sys
 import os
 from dotenv import load_dotenv
@@ -15,10 +16,9 @@ from langgraph.graph.message import MessagesState
 from langgraph.prebuilt import ToolNode
 
 # --- Your Custom Toolkit Imports ---
-# <-- CHANGE 1 START: Import both toolkits ---
+# (No changes here)
 from Backend.Tools.email.email_toolkit import EmailToolkit
 from Backend.Tools.university.university_toolkit import UniversityToolkit
-# <-- CHANGE 1 END ---
 
 # --- Load Environment Variables ---
 load_dotenv()
@@ -29,19 +29,16 @@ if not google_api_key:
 
 
 # --- 1. Load and Prepare Your Custom Tools ---
-# <-- CHANGE 2 START: Load tools from both toolkits and combine them ---
+# (No changes here)
 print("Loading tools...")
 email_toolkit = EmailToolkit()
 university_toolkit = UniversityToolkit()
 
-# Combine the lists of tools from both toolkits
 custom_email_tools = email_toolkit.get_tools()
 custom_university_tools = university_toolkit.get_tools()
 all_custom_tools = custom_email_tools + custom_university_tools
-# <-- CHANGE 2 END ---
 
 langchain_tools = []
-# Loop over the combined list of all tools
 for tool in all_custom_tools:
     langchain_tools.append(
         StructuredTool.from_function(
@@ -58,47 +55,52 @@ print("--------------------------")
 
 
 # --- 2. Initialize the Language Model and Bind Tools ---
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest", google_api_key=google_api_key)
+# (No changes here)
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", google_api_key=google_api_key)
 llm_with_tools = llm.bind_tools(langchain_tools)
 
 
 # --- 3. Define the Prompt Template ---
-# <-- CHANGE 3 START: Enhance the system prompt with the new procedure ---
+# <-- THIS IS THE MAIN CHANGE ---
+# The prompt is now simpler. It trusts the "smart tool" to do the
+# classification and XML generation.
 prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
             "You are an advanced, autonomous university administration assistant. Your primary goal is to process incoming emails according to specific procedures. "
-            "You must be autonomous and complete all steps of a task without asking for confirmation. "
+            "You must be autonomous and complete all steps of a task without asking for confirmation."
             
             "\n\nHERE ARE YOUR TOOLS AND PROCEDURES:"
             "\n- Use the 'Email Toolkit' for general email tasks like reading and sending."
             "\n- Use the 'University Toolkit' for specialized tasks related to student and course data."
             
-            "\n\n**CRITICAL PROCEDURE: Course Registration Emails**"
-            "\nWhen you are asked to process a course registration email, you MUST follow these steps in this exact order:"
+            "\n\n**CRITICAL PROCEDURE: Processing University Emails**"
+            "\nWhen you are asked to process an email, you MUST follow these steps in this exact order:"
             "\n1. First, use the `Read_Email` tool to get the full content of the email."
-            "\n2. From the email content, extract the necessary information (student name, course ID, query text)."
-            "\n3. Second, use the `Invoke_University_AI_Model` tool with the extracted information to get the processed data as XML."
-            "\n4. Third, use the `Import_Data_to_Unitime` tool, passing the XML you received from the previous step."
-            "\n5. Finally, confirm that the entire process was successful."
+            "\n2. Second, pass the *entire* email content (as the 'query_text') to the `Invoke_University_AI_Model` tool. This tool is smart and will automatically classify the request, use the correct fine-tuned model, and return the XML."
+            "\n3. Third, use the `Import_Data_to_Unitime` tool, passing the XML you received from the previous step."
+            "\n4. Finally, confirm that the entire process was successful."
         ),
         ("placeholder", "{messages}"),
     ]
 )
-# <-- CHANGE 3 END ---
+# <-- END OF CHANGE ---
 
 
 # --- 4. Create the Agent Chain ---
+# (No changes here)
 agent_chain = prompt | llm_with_tools
 
 
 # --- 5. Define the Graph's State ---
+# (No changes here)
 class AgentState(MessagesState):
     pass
 
 
 # --- 6. Define the Graph's Nodes (The Steps) ---
+# (No changes here)
 def call_model(state: AgentState):
     """Calls the LLM to decide the next action."""
     response = agent_chain.invoke({"messages": state["messages"]})
@@ -108,6 +110,7 @@ tool_node = ToolNode(langchain_tools)
 
 
 # --- 7. Define the Graph's Edges (The Logic) ---
+# (No changes here)
 def should_continue(state: AgentState) -> str:
     """Decides the next step after the LLM has been called."""
     last_message = state["messages"][-1]
@@ -117,6 +120,7 @@ def should_continue(state: AgentState) -> str:
         return "end"
 
 # --- 8. Assemble the Graph ---
+# (No changes here)
 workflow = StateGraph(AgentState)
 workflow.add_node("agent", call_model)
 workflow.add_node("action", tool_node)
@@ -132,10 +136,12 @@ app = workflow.compile()
 
 # --- 9. Run the Agent ---
 if __name__ == "__main__":
-    # <-- CHANGE 4 START: Update the input to trigger the new workflow ---
-    # This new input is designed to match the "Course Registration" procedure in the system prompt.
+    # This input is still good. It will trigger the "CRITICAL PROCEDURE"
     human_input = "There is a new student course registration email in the INBOX. Please process it and update the university system accordingly."
-    # <-- CHANGE 4 END ---
+    
+    # --- OR ---
+    # You could try one that matches your other model:
+    # human_input = "An instructor preference email just arrived. Please process it and update the university system."
 
     print(f"\nExecuting task: '{human_input}'\n")
 
