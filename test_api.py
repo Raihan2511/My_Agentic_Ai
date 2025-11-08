@@ -4,22 +4,22 @@ from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
 
 # --- Load Environment Variables ---
-# Make sure your .env file is in the same directory or accessible
 load_dotenv() 
 api_url = os.getenv("UNITIME_API_URL")
 username = os.getenv("UNITIME_USERNAME")
 password = os.getenv("UNITIME_PASSWORD")
 
-# --- Sample XML Data ---
-# (Replace this with the actual XML your agent generated if you prefer)
+# --- CORRECTED XML Data for UPDATE ---
+# This now matches the correct structure you provided
+# It uses action="update" and I've changed the title for testing.
 sample_xml = """<?xml version="1.0" encoding="UTF-8"?>
 <offerings campus="woebegon" year="2010" term="Fal" dateFormat="yyyy/M/d" timeFormat="HHmm" created="Sat Oct 18 19:33:17 CEST 2025" includeExams="none">
-  <offering id="132371" offered="true" action="insert">
-    <course id="959474" subject="DLCS" courseNbr="10" controlling="true" title="DLCS_10"/>
+  <offering id="132371" offered="true" action="update">
+    <course id="684737" subject="DLCS" courseNbr="101" controlling="true" title="DLCS_101 Updated"/>
     <config name="1" limit="25">
       <subpart type="Lab" suffix="" minPerWeek="50"/>
       <class id="DLCS 10 Lab L1" type="Lab" suffix="L1" limit="25" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
-        <time days="Monday" startTime="08:30" endTime="0920" timePattern="1 x 50"/>
+        <time days="MWF" startTime="0830" endTime="0920" timePattern="2 x 50"/>
         <room building="EDUC" roomNbr="106"/>
       </class>
     </config>
@@ -54,19 +54,18 @@ try:
     response.raise_for_status() # Check for HTTP errors 
     
     if "text/html" in response.headers.get("Content-Type", ""):
-         print("\n✅ Successfully imported data. Server returned HTML response.")
-         # Optionally print a snippet of the HTML if needed
-         # print(f"HTML Snippet:\n{response.text[:500]}...") 
+          print("\n✅ Successfully imported data. Server returned HTML response.")
+          # You should see the log from the server in the response text
+          print(f"Server response:\n{response.text}") 
     else:
-        print("\n✅ Successfully imported data.")
-        print(f"Server response:\n{response.text}")
+          print("\n✅ Successfully imported data.")
+          print(f"Server response:\n{response.text}")
 
 except requests.exceptions.HTTPError as http_err:
     print(f"\n❌ ERROR: HTTP error occurred: {http_err}")
     print(f"Response Body:\n{http_err.response.text}")
 except requests.exceptions.RequestException as req_err:
     print(f"\n❌ ERROR: Network request error occurred: {req_err}")
-    # This will catch "Connection Refused" etc.
 
 finally:
     print("\n--- API Test Finished ---")
