@@ -80,6 +80,7 @@
 import os
 import sys
 import requests
+from requests.auth import HTTPBasicAuth  # --- ADDED: Import for Basic Auth
 from pydantic import BaseModel, Field
 from typing import Optional, Any
 from typing import Type
@@ -106,54 +107,40 @@ class ImportToUnitimeTool(BaseTool):
     
     def _execute(self, unitime_xml_data: str) -> str:
         
-        # --- START VERIFICATION BLOCK (REMOVED) ---
-        # print("\n" + "="*60)
-        # print("--- VERIFICATION MODE: XML Received ---")
-        # print("The agent is about to send the following XML to UniTime:")
-        # print("\n")
-        # print(unitime_xml_data) 
-        # print("\n" + "="*60 + "\n")
-        # 
-        # return "SUCCESS: XML was generated and verified in VERIFICATION MODE. It was NOT sent to the real UniTime server."
-        # --- END VERIFICATION BLOCK ---
-
-        # --- THIS IS THE NEW "LIVE" CODE ---
-        
+        # --- Load ALL necessary credentials from config ---
         api_url = self.get_tool_config("UNITIME_API_URL")
+        username = self.get_tool_config("UNITIME_USERNAME") # --- ADDED ---
+        password = self.get_tool_config("UNITIME_PASSWORD") # --- ADDED ---
         
-        # --- API KEY LOGIC (REMOVED) ---
-        # api_key = self.get_tool_config("UNITIME_API_KEY")
-        # if not api_url or not api_key:
-        # --- (REMOVED) ---
-        
-        # --- UPDATED: Check for api_url only ---
-        if not api_url:
-            return "Error: Unitime API URL (UNITIME_API_URL) is not configured in the environment."
+        # --- UPDATED: Check for all required configs ---
+        if not api_url or not username or not password:
+            return "Error: Missing UNITIME_API_URL, UNITIME_USERNAME, or UNITIME_PASSWORD in the environment configuration."
 
-        # --- UPDATED: Headers simplified, no API Key ---
+        # --- UPDATED: Matched headers from your working test_api.py ---
         headers = {
-            "Content-Type": "application/xml"
+            "Content-Type": "application/xml;charset=UTF-8"
         }
         
         try:
-            print(f"--- ATTEMPTING TO POST XML TO {api_url} ---")
+            print(f"--- ATTEMPTING TO POST XML TO {api_url} using Basic Auth ---")
             
             response = requests.post(
                 api_url, 
                 data=unitime_xml_data.encode('utf-8'), # Send the raw XML as bytes
-                headers=headers
+                headers=headers,
+                auth=HTTPBasicAuth(username, password) # --- ADDED: This is the critical fix
             )
             
             response.raise_for_status()  # This will raise an HTTPError for bad responses (4xx or 5xx)
             
             # If the server sends back HTML (like a success page), we might not want to print all of it.
             if "text/html" in response.headers.get("Content-Type", ""):
-                 return f"Successfully imported data to UniTime. Server returned an HTML success page (Status: {response.status_code})."
+                 return f"Successfully imported data to UniTime. Server returned an HTML success page (Status: {response.status_code}). Server response: {response.text}"
             
             return f"Successfully imported data to UniTime. Server response: {response.text}"
         
         except requests.exceptions.HTTPError as http_err:
-            # This will show you 404, 500, 415 (Unsupported Media Type) errors
+            # This will show you 401 (Unauthorized), 404, 500, 415 (Unsupported Media Type) errors
             return f"Error: HTTP error occurred during UniTime import: {http_err} - Response: {http_err.response.text}"
         except requests.exceptions.RequestException as req_err:
             # This will catch "Connection Refused" if the server is down
