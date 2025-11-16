@@ -14,3 +14,12 @@ transformers
 tiktoken
 langgraph
 torch
+pygraphviz
+pydot
+
+# Install all required packages for the new tools
+selenium 
+webdriver-manager 
+pandas 
+faiss-cpu 
+sentence-transformers 
