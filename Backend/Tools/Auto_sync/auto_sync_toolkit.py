@@ -15,20 +15,19 @@ from Backend.tool_framework.tool_config import ToolConfiguration
 from Backend.types.key_type import ToolConfigKeyType
 
 # --- Tool Imports ---
-from Backend.Tools.Auto_sync.run_solver import RunSolverAndExportTool
+# <-- FIXED: Changed import from 'run_solver' to the new filename 'export_saved_timetable'
+from Backend.Tools.Auto_sync.export_saved_timetable import ExportTimetableTool
 
 class AutoSyncToolkit(BaseToolkit, ABC):
     name: str = "Auto-Sync Toolkit"
-    description: str = "Toolkit containing the Selenium bot to run the UniTime solver and export the final schedule."
+    description: str = "Toolkit containing the Selenium bot to export the final schedule from UniTime."
 
     def get_tools(self) -> List[BaseTool]:
         """Returns a list of tools available in this toolkit."""
-        return [RunSolverAndExportTool()]
+        return [ExportTimetableTool()]
 
     def get_env_keys(self) -> List[ToolConfiguration]:
         """Defines the environment variables required for the tools in this toolkit."""
-        # This tool will get the UniTime credentials from the main config
-        # We also need a path to save the downloaded CSV
         return [
             ToolConfiguration(key="UNITIME_USERNAME", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=True),
             ToolConfiguration(key="UNITIME_PASSWORD", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=True),

@@ -66,6 +66,51 @@ llm_with_tools = llm.bind_tools(langchain_tools)
 
 
 # --- 3. Define the Master Router Prompt ---
+# prompt = ChatPromptTemplate.from_messages(
+#     [
+#         (
+#             "system",
+#             "You are the Master Control Agent for a university. You have three main workflows:"
+#             "\n1. READ (Student Queries): Answer questions about schedules."
+#             "\n2. WRITE (Admin Tasks): Add new data to the system via email or NLP."
+#             "\n3. SYNC (Admin Task): Run the full, automated sync process."
+            
+#             "\n\nHERE ARE YOUR TOOLS AND PROCEDURES:"
+#             "\n- 'Read_Email': Fetches a list of recent emails."
+#             "\n- 'Add_Offering_to_Batch_File': Processes NLP text or email and adds to the batch file."
+#             "\n- 'Import_Batch_File_to_Unitime': Imports the pending batch file to UniTime."
+#             "\n- 'Run_Solver_and_Export': Selenium bot to run the solver and export the CSV."
+#             "\n- 'Refresh_RAG_Database': Rebuilds the RAG database from the exported CSV."
+#             "\n- 'Query_Student_Timetable': Answers a student's question using RAG."
+            
+#             "\n\n**WORKFLOW 1: READ (Student Query)**"
+#             "\nIf the user asks a question about class times, locations, or instructors (e.g., 'Where is my class?', 'Who teaches CS101?'):"
+#             "\n1. You MUST use the `Query_Student_Timetable` tool."
+#             "\n2. Report the answer directly to the user."
+            
+#             "\n\n**WORKFLOW 2: WRITE (Admin Task)**"
+#             "\nIf the user asks to 'process the inbox' or 'add a new class' from an email:"
+#             "\n1. **Fetch Email:** Use `Read_Email` to find the relevant email."
+#             "\n2. **Add to Batch:** Pass the *email body* to the `Add_Offering_to_Batch_File` tool."
+#             "\n3. **Report:** Report the success message (e.g., 'Success: Added to batch.')."
+            
+#             "\nIf the user gives you a *new* request directly (e.g., 'Create a new class...'):"
+#             "\n1. **Add to Batch:** Pass the user's *natural language command* to the `Add_Offering_to_Batch_File` tool."
+#             "\n2. **Report:** Report the success message."
+            
+#             "\n\n**WORKFLOW 3: SYNC (The Full Auto-Sync)**"
+#             "\nIf the user explicitly asks to 'run the sync', 'refresh the database', or 'run the auto-sync':"
+#             "\nThis is a multi-step process. You MUST call these tools in this *exact* order:"
+#             "\n1. First, call `Import_Batch_File_to_Unitime` to import any pending changes."
+#             "\n2. Second, *after* step 1 is successful, call `Run_Solver_and_Export`."
+#             "\n3. Third, *after* step 2 is successful, call `Refresh_RAG_Database`."
+#             "\n4. Finally, report that the full sync is complete and the chatbot is updated."
+#         ),
+#         ("placeholder", "{messages}"),
+#     ]
+# )
+# <-- END OF PROMPT ---
+# --- 3. Define the Master Router Prompt ---
 prompt = ChatPromptTemplate.from_messages(
     [
         (
@@ -79,7 +124,10 @@ prompt = ChatPromptTemplate.from_messages(
             "\n- 'Read_Email': Fetches a list of recent emails."
             "\n- 'Add_Offering_to_Batch_File': Processes NLP text or email and adds to the batch file."
             "\n- 'Import_Batch_File_to_Unitime': Imports the pending batch file to UniTime."
-            "\n- 'Run_Solver_and_Export': Selenium bot to run the solver and export the CSV."
+            
+            # <-- FIXED: Name changed to match your tool class
+            "\n- 'ExportTimetableTool': Selenium bot to export the CSV." 
+            
             "\n- 'Refresh_RAG_Database': Rebuilds the RAG database from the exported CSV."
             "\n- 'Query_Student_Timetable': Answers a student's question using RAG."
             
@@ -102,7 +150,10 @@ prompt = ChatPromptTemplate.from_messages(
             "\nIf the user explicitly asks to 'run the sync', 'refresh the database', or 'run the auto-sync':"
             "\nThis is a multi-step process. You MUST call these tools in this *exact* order:"
             "\n1. First, call `Import_Batch_File_to_Unitime` to import any pending changes."
-            "\n2. Second, *after* step 1 is successful, call `Run_Solver_and_Export`."
+            
+             # <-- FIXED: Name changed to match your tool class
+            "\n2. Second, *after* step 1 is successful, call `ExportTimetableTool`."
+           
             "\n3. Third, *after* step 2 is successful, call `Refresh_RAG_Database`."
             "\n4. Finally, report that the full sync is complete and the chatbot is updated."
         ),
@@ -110,7 +161,6 @@ prompt = ChatPromptTemplate.from_messages(
     ]
 )
 # <-- END OF PROMPT ---
-
 
 # --- 4. Create the Agent Chain ---
 agent_chain = prompt | llm_with_tools

@@ -1,3 +1,4 @@
+# refresh_rag_database.py
 import os
 import sys
 from typing import Type
