@@ -124,7 +124,7 @@ class AddToBatchFileTool(BaseTool):
             return "Error: Classifier model is not loaded."
         prompt = f"""
         Classify the following university-related query into one of the following exact categories:
-        - Course_Offering (for adding new classes, student registrations, etc.)
+        - Course_Offering (for adding new classes,for updating existing classes, student registrations, etc.)
         - Instructor_Preference (for teacher preferences, room features, time constraints)
         - Other (for anything else)
         

@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <offerings campus="woebegon" year="2010" term="Fal" dateFormat="yyyy/M/d" timeFormat="HHmm" created="Sat Oct 18 19:33:17 CEST 2025" includeExams="none">
+
   <offering offered="true" action="insert">
     <course subject="DLCS" courseNbr="101" controlling="true" title="DLCS_101 New"/>
     <config name="1" limit="25">
-      <subpart type="Lab" suffix="" minPerWeek="50"/>
-      <class id="DLCS 10 Lab L1" type="Lab" suffix="L1" limit="25" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+      <subpart type="Lec" suffix="" minPerWeek="50"/>
+      <class id="DLCS 10 Lec L1" type="Lec" suffix="L1" limit="25" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
         <time days="MWF" startTime="0830" endTime="0920" timePattern="2 x 50"/>
         <room building="EDUC" roomNbr="106"/>
       </class>
     </config>
   </offering>
-  <offering  offered="true" action="insert">
+
+  <offering offered="true" action="insert">
     <course subject="MMD" courseNbr="101" controlling="true" title="MMD 101"/>
     <config name="1" limit="25">
       <subpart type="Lec" suffix="" minPerWeek="50"/>
@@ -20,14 +22,27 @@
       </class>
     </config>
   </offering>
-<offering action="insert" offered="true">
-<course controlling="true" courseNbr="101" subject="CG" title="CG_101"/>
-<config limit="15" name="1">
-<subpart minPerWeek="75" suffix="" type="Lec"/>
-<class cancelled="false" displayInScheduleBook="true" id="CG 101 Lec 1" limit="15" managingDept="0100" studentScheduling="true" suffix="1" type="Lec">
-<time days="Monday" endTime="0930" startTime="1100" timePattern="1 x 75"/>
-<room building="EDUC" roomNbr="103"/>
-</class>
-</config>
-</offering>
+
+  <offering action="insert" offered="true">
+    <course controlling="true" courseNbr="101" subject="CG" title="CG_101_new"/>
+    <config limit="15" name="1">
+      <subpart minPerWeek="75" suffix="" type="Lec"/>
+      <class cancelled="false" displayInScheduleBook="true" id="CG 101 Lec 1" limit="15" managingDept="0100" studentScheduling="true" suffix="1" type="Lec">
+        <time days="M" startTime="1100" endTime="1000" timePattern="1 x 75"/>
+        <room building="EDUC" roomNbr="103"/>
+      </class>
+    </config>
+  </offering>
+
+  <offering action="insert" offered="true">
+    <course controlling="true" courseNbr="101" subject="DRL" title="DRL_101"/>
+    <config limit="10" name="1">
+      <subpart minPerWeek="50" suffix="" type="Lec"/>
+      <class cancelled="false" displayInScheduleBook="true" id="DRL 101 Lec R1" limit="10" managingDept="0100" studentScheduling="true" suffix="R1" type="Lec">
+        <time days="T" startTime="1030" endTime="1200" timePattern="1 x 50"/>
+        <room building="EDUC" roomNbr="104"/>
+      </class>
+    </config>
+  </offering>
+
 </offerings>

@@ -20,6 +20,7 @@ from Backend.Tools.email.email_toolkit import EmailToolkit
 from Backend.Tools.university.university_toolkit import UniversityToolkit
 from Backend.Tools.Auto_sync.auto_sync_toolkit import AutoSyncToolkit
 from Backend.Tools.rag_system.rag_toolkit import RAGToolkit
+# <-- REMOVED: We don't need the separate NLPToolkit
 
 # --- Load Environment Variables ---
 load_dotenv()
@@ -35,6 +36,7 @@ email_toolkit = EmailToolkit()
 university_toolkit = UniversityToolkit()
 auto_sync_toolkit = AutoSyncToolkit()
 rag_toolkit = RAGToolkit()
+# <-- REMOVED: No longer loading NLPToolkit
 
 # Combine all tools from all toolkits
 all_custom_tools = (
@@ -43,6 +45,7 @@ all_custom_tools = (
     auto_sync_toolkit.get_tools() +
     rag_toolkit.get_tools()
 )
+# <-- REMOVED: No longer adding nlp_toolkit.get_tools()
 
 langchain_tools = []
 for tool in all_custom_tools:
@@ -61,27 +64,35 @@ print("--------------------------")
 
 
 # --- 2. Initialize the Language Model and Bind Tools ---
+# <-- FIXED: Corrected the model name
 llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", google_api_key=google_api_key)
 llm_with_tools = llm.bind_tools(langchain_tools)
 
 
 # --- 3. Define the Master Router Prompt ---
+
 # prompt = ChatPromptTemplate.from_messages(
 #     [
 #         (
 #             "system",
-#             "You are the Master Control Agent for a university. You have three main workflows:"
+#             "You are the Master Control Agent for a university. You have four main workflows:"
+#             "\n0. TEST (Developer Task): Test a specific tool in isolation."
 #             "\n1. READ (Student Queries): Answer questions about schedules."
-#             "\n2. WRITE (Admin Tasks): Add new data to the system via email or NLP."
-#             "\n3. SYNC (Admin Task): Run the full, automated sync process."
+#             "\n2. WRITE (Admin Tasks): Add new data to the local batch file."
+#             "\n3. SYNC (Admin Task): Run the sync process by exporting and refreshing."
             
 #             "\n\nHERE ARE YOUR TOOLS AND PROCEDURES:"
 #             "\n- 'Read_Email': Fetches a list of recent emails."
-#             "\n- 'Add_Offering_to_Batch_File': Processes NLP text or email and adds to the batch file."
+#             "\n- 'Add_Offering_to_Batch_File': Processes NLP text (from email or query) and saves it to the batch file. This tool does its own NLP-to-XML conversion."
 #             "\n- 'Import_Batch_File_to_Unitime': Imports the pending batch file to UniTime."
-#             "\n- 'Run_Solver_and_Export': Selenium bot to run the solver and export the CSV."
+#             "\n- 'ExportTimetableTool': Selenium bot to export the final CSV." 
 #             "\n- 'Refresh_RAG_Database': Rebuilds the RAG database from the exported CSV."
 #             "\n- 'Query_Student_Timetable': Answers a student's question using RAG."
+            
+#             "\n\n**WORKFLOW 0: TEST SELENIUM**"
+#             "\nIf the user explicitly asks to 'test export' or 'test selenium':"
+#             "\n1. You MUST call the `ExportTimetableTool`."
+#             "\n2. Report the result directly to the user."
             
 #             "\n\n**WORKFLOW 1: READ (Student Query)**"
 #             "\nIf the user asks a question about class times, locations, or instructors (e.g., 'Where is my class?', 'Who teaches CS101?'):"
@@ -89,47 +100,50 @@ llm_with_tools = llm.bind_tools(langchain_tools)
 #             "\n2. Report the answer directly to the user."
             
 #             "\n\n**WORKFLOW 2: WRITE (Admin Task)**"
+#             "\nIf the user gives you a *new* request directly (e.g., 'Create a new class...'):"
+#             "\n1. **Add to Batch:** Call the `Add_Offering_to_Batch_File` tool. Pass the user's *natural language command* as the `query_text`."
+#             "\n2. **Report:** Report the success message (e.g., 'Added to local batch file.')."
+
 #             "\nIf the user asks to 'process the inbox' or 'add a new class' from an email:"
 #             "\n1. **Fetch Email:** Use `Read_Email` to find the relevant email."
-#             "\n2. **Add to Batch:** Pass the *email body* to the `Add_Offering_to_Batch_File` tool."
-#             "\n3. **Report:** Report the success message (e.g., 'Success: Added to batch.')."
-            
-#             "\nIf the user gives you a *new* request directly (e.g., 'Create a new class...'):"
-#             "\n1. **Add to Batch:** Pass the user's *natural language command* to the `Add_Offering_to_Batch_File` tool."
-#             "\n2. **Report:** Report the success message."
+#             "\n2. **Add to Batch:** Call the `Add_Offering_to_Batch_File` tool. Pass the *full email body* as the `query_text`."
+#             "\n3. **Report:** Report the success message (e.g., 'Added to local batch file.')."
             
 #             "\n\n**WORKFLOW 3: SYNC (The Full Auto-Sync)**"
+#             # <-- MODIFIED: This workflow now skips the failing import step.
 #             "\nIf the user explicitly asks to 'run the sync', 'refresh the database', or 'run the auto-sync':"
-#             "\nThis is a multi-step process. You MUST call these tools in this *exact* order:"
-#             "\n1. First, call `Import_Batch_File_to_Unitime` to import any pending changes."
-#             "\n2. Second, *after* step 1 is successful, call `Run_Solver_and_Export`."
-#             "\n3. Third, *after* step 2 is successful, call `Refresh_RAG_Database`."
-#             "\n4. Finally, report that the full sync is complete and the chatbot is updated."
+#             "\nThis is a two-step process. You MUST call these tools in this *exact* order:"
+#             "\n1. First, call `ExportTimetableTool` to get the currently active schedule."
+#             "\n2. Second, *after* step 1 is successful, call `Refresh_RAG_Database`."
+#             "\n3. Finally, report that the sync is complete and the chatbot is updated."
 #         ),
 #         ("placeholder", "{messages}"),
 #     ]
 # )
-# <-- END OF PROMPT ---
-# --- 3. Define the Master Router Prompt ---
+# # <-- END OF PROMPT ---
 prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            "You are the Master Control Agent for a university. You have three main workflows:"
+            "You are the Master Control Agent for a university. You have five main workflows:"
+            "\n0. TEST (Developer Task): Test a specific tool in isolation."
             "\n1. READ (Student Queries): Answer questions about schedules."
-            "\n2. WRITE (Admin Tasks): Add new data to the system via email or NLP."
-            "\n3. SYNC (Admin Task): Run the full, automated sync process."
+            "\n2. WRITE (Admin Tasks): Add new data to the local batch file."
+            "\n3. SYNC (Admin Task): Run the sync process by exporting and refreshing."
+            "\n4. IMPORT BATCH (Admin Task): Push the local batch file to UniTime."  # <-- ADDED
             
             "\n\nHERE ARE YOUR TOOLS AND PROCEDURES:"
             "\n- 'Read_Email': Fetches a list of recent emails."
-            "\n- 'Add_Offering_to_Batch_File': Processes NLP text or email and adds to the batch file."
+            "\n- 'Add_Offering_to_Batch_File': Processes NLP text (from email or query) and saves it to the batch file. This tool does its own NLP-to-XML conversion."
             "\n- 'Import_Batch_File_to_Unitime': Imports the pending batch file to UniTime."
-            
-            # <-- FIXED: Name changed to match your tool class
-            "\n- 'ExportTimetableTool': Selenium bot to export the CSV." 
-            
+            "\n- 'ExportTimetableTool': Selenium bot to export the final CSV." 
             "\n- 'Refresh_RAG_Database': Rebuilds the RAG database from the exported CSV."
             "\n- 'Query_Student_Timetable': Answers a student's question using RAG."
+            
+            "\n\n**WORKFLOW 0: TEST SELENIUM**"
+            "\nIf the user explicitly asks to 'test export' or 'test selenium':"
+            "\n1. You MUST call the `ExportTimetableTool`."
+            "\n2. Report the result directly to the user."
             
             "\n\n**WORKFLOW 1: READ (Student Query)**"
             "\nIf the user asks a question about class times, locations, or instructors (e.g., 'Where is my class?', 'Who teaches CS101?'):"
@@ -137,29 +151,34 @@ prompt = ChatPromptTemplate.from_messages(
             "\n2. Report the answer directly to the user."
             
             "\n\n**WORKFLOW 2: WRITE (Admin Task)**"
+            "\nIf the user gives you a *new* request directly (e.g., 'Create a new class...'):"
+            "\n1. **Add to Batch:** Call the `Add_Offering_to_Batch_File` tool. Pass the user's *natural language command* as the `query_text`."
+            "\n2. **Report:** Report the success message (e.g., 'Added to local batch file.')."
+
             "\nIf the user asks to 'process the inbox' or 'add a new class' from an email:"
             "\n1. **Fetch Email:** Use `Read_Email` to find the relevant email."
-            "\n2. **Add to Batch:** Pass the *email body* to the `Add_Offering_to_Batch_File` tool."
-            "\n3. **Report:** Report the success message (e.g., 'Success: Added to batch.')."
-            
-            "\nIf the user gives you a *new* request directly (e.g., 'Create a new class...'):"
-            "\n1. **Add to Batch:** Pass the user's *natural language command* to the `Add_Offering_to_Batch_File` tool."
-            "\n2. **Report:** Report the success message."
+            "\n2. **Add to Batch:** Call the `Add_Offering_to_Batch_File` tool. Pass the *full email body* as the `query_text`."
+            "\n3. **Report:** Report the success message (e.g., 'Added to local batch file.')."
             
             "\n\n**WORKFLOW 3: SYNC (The Full Auto-Sync)**"
+            # <-- MODIFIED: This workflow now skips the failing import step.
             "\nIf the user explicitly asks to 'run the sync', 'refresh the database', or 'run the auto-sync':"
-            "\nThis is a multi-step process. You MUST call these tools in this *exact* order:"
-            "\n1. First, call `Import_Batch_File_to_Unitime` to import any pending changes."
-            
-             # <-- FIXED: Name changed to match your tool class
-            "\n2. Second, *after* step 1 is successful, call `ExportTimetableTool`."
-           
-            "\n3. Third, *after* step 2 is successful, call `Refresh_RAG_Database`."
-            "\n4. Finally, report that the full sync is complete and the chatbot is updated."
+            "\nThis is a two-step process. You MUST call these tools in this *exact* order:"
+            "\n1. First, call `ExportTimetableTool` to get the currently active schedule."
+            "\n2. Second, *after* step 1 is successful, call `Refresh_RAG_Database`."
+            "\n3. Finally, report that the sync is complete and the chatbot is updated."
+
+            # <-- START OF ADDED WORKFLOW 4 -->
+            "\n\n**WORKFLOW 4: IMPORT BATCH (Admin Task)**"
+            "\nIf the user explicitly asks to 'import the batch file', 'run the import', or 'push batch data to unitime':"
+            "\n1. You MUST call the `Import_Batch_File_to_Unitime` tool."
+            "\n2. Report the result of the import directly to the user."
+            # <-- END OF ADDED WORKFLOW 4 -->
         ),
         ("placeholder", "{messages}"),
     ]
 )
+# <-- END OF PROMPT ---
 # <-- END OF PROMPT ---
 
 # --- 4. Create the Agent Chain ---
@@ -210,9 +229,11 @@ if __name__ == "__main__":
     print("✅ Master Agent Initialized. Ready for commands.")
     print("---")
     print("Examples:")
-    print("  'Where is my CG 101 class?'          (Workflow 1: RAG Query)")
-    print("  'Process the new request in the inbox.' (Workflow 2: Write from Email)")
-    print("  'Run the full auto-sync now.'         (Workflow 3: Sync)")
+    print("  'Where is my CG 101 class?'")
+    print("  'Process the new request in the inbox.'")
+    print("  'Add a new offering: CS 4500, instructor 'Raihan', room W101 on Mon 10-12.'") 
+    print("  'Run the full auto-sync now.'")
+    print("  'Import the batch file.'") # <-- ADDED FOR WORKFLOW 4
     print("  'quit' to exit.")
     print("---")
 

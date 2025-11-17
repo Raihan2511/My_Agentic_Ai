@@ -24,39 +24,62 @@ class QueryTimetableInput(BaseModel):
 
 # --- Tool Class Definition ---
 class QueryStudentTimetableTool(BaseTool):
-    """
-    Answers a student's question about their schedule by
-    querying the RAG vector database.
-    """
     name: str = "Query_Student_Timetable"
     description: str = "Answers student questions about class times, locations, or instructors."
     args_schema: Type[BaseModel] = QueryTimetableInput
 
     def _execute(self, query: str) -> str:
-        # --- 1. Get Configuration ---
         print(f"--- [RAG Query]: Received query: {query} ---")
-        index_path = self.get_tool_config("RAG_INDEX_PATH")
+
+        # ------------------------------
+        # 1. LOAD CONFIG OR FALLBACK
+        # ------------------------------
+        index_path = (
+            self.get_tool_config("RAG_INDEX_PATH")
+            or os.path.join(PROJECT_ROOT, "data/rag_index")
+        )
+
         google_api_key = self.get_tool_config("GOOGLE_API_KEY")
 
-        if not os.path.exists(index_path):
-            return "Error: [RAG Query] The RAG database index is not found. Please ask an admin to run the 'sync' process."
+        # Ensure index path is a directory
+        if not isinstance(index_path, str):
+            return "Error: RAG index path must be a string."
 
-        # --- 2. Initialize LLM, Embeddings, and Vector Store ---
+        if not os.path.exists(index_path):
+            return f"Error: [RAG Query] RAG index not found at {index_path}"
+
+        # ------------------------------
+        # 2. LOAD LLM & VECTOR INDEX
+        # ------------------------------
         try:
-            llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", google_api_key=google_api_key, temperature=0.0)
+            print("--- [RAG Query]: Initializing LLM and embeddings... ---")
+            llm = ChatGoogleGenerativeAI(
+                model="gemini-2.5-flash-lite",
+                google_api_key=google_api_key,
+                temperature=0.0
+            )
+
             embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-            
-            print("--- [RAG Query]: Loading FAISS index... ---")
-            db = FAISS.load_local(index_path, embeddings, allow_dangerous_deserialization=True) # Allow loading
-            retriever = db.as_retriever(search_kwargs={"k": 3}) # Get top 3 results
-            
+
+            print(f"--- [RAG Query]: Loading FAISS index from {index_path} ---")
+            db = FAISS.load_local(
+                index_path,
+                embeddings,
+                allow_dangerous_deserialization=True
+            )
+
+            retriever = db.as_retriever(search_kwargs={"k": 3})
+
         except Exception as e:
             return f"Error: [RAG Query] Failed to load RAG components. {e}"
 
-        # --- 3. Build RAG Chain ---
+        # ------------------------------
+        # 3. BUILD RAG CHAIN
+        # ------------------------------
         template = """
-        You are a helpful university assistant. Answer the user's question based *only* on the following context.
-        If the information is not in the context, say "I'm sorry, I don't have that information in the schedule."
+        You are a helpful university assistant. Answer ONLY from the context below.
+        If the information is missing, reply:
+        "I'm sorry, I don't have that information in the schedule."
 
         Context:
         {context}
@@ -66,13 +89,9 @@ class QueryStudentTimetableTool(BaseTool):
 
         Answer:
         """
+
         prompt = ChatPromptTemplate.from_template(template)
 
-        # This chain:
-        # 1. Takes the "question"
-        # 2. Passes it to the retriever to get "context"
-        # 3. Passes "context" and "question" to the LLM
-        # 4. Gets the final string output
         rag_chain = (
             {"context": retriever, "question": RunnablePassthrough()}
             | prompt
@@ -80,12 +99,13 @@ class QueryStudentTimetableTool(BaseTool):
             | StrOutputParser()
         )
 
-        # --- 4. Run Chain ---
+        # ------------------------------
+        # 4. RUN QUERY
+        # ------------------------------
         try:
             print("--- [RAG Query]: Invoking RAG chain... ---")
             answer = rag_chain.invoke(query)
-            print(f"--- [RAG Query]: Answer generated: {answer} ---")
             return answer
-            
+
         except Exception as e:
-            return f"Error: [RAG Query] An error occurred during RAG chain invocation. {e}"
+            return f"Error: [RAG Query] Error during query execution. {e}"

@@ -1,17 +1,9 @@
-
-# run_solver.py
 import os
 import sys
 import time
+import requests
 from typing import Type
 from pydantic import BaseModel
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.common.exceptions import TimeoutException
 
 # --- BaseTool import ---
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
@@ -26,90 +18,54 @@ class RunExportInput(BaseModel):
 
 class ExportTimetableTool(BaseTool):
     """
-    Opens UniTime timetable page and exports CSV automatically.
+    Exports the timetable CSV directly using UniTime export API.
     """
     name: str = "Export_Timetable"
     description: str = "Exports the timetable CSV from UniTime without using the solver."
     args_schema: Type[BaseModel] = RunExportInput
 
-    def _wait_for_download(self, download_dir: str, timeout: int = 30):
-        """
-        Wait for any .crdownload file to finish.
-        """
-        seconds = 0
-        while seconds < timeout:
-            time.sleep(1)
-            downloading = any(f.endswith(".crdownload") for f in os.listdir(download_dir))
-            if not downloading:
-                return True
-            seconds += 1
-        return False
-
     def _execute(self) -> str:
         print("--- [Export Bot] Starting Export ---")
 
-        base_url = self.get_tool_config("UNITIME_BASE_URL", "http://localhost:8080/UniTime")
-        export_target = self.get_tool_config("SCHEDULE_EXPORT_PATH")
+        # --- 1. BASE URL CONFIG ---
+        base_url_config = self.get_tool_config("UNITIME_BASE_URL")
+        # Fallback for safety
+        base_url = base_url_config if base_url_config else "http://localhost:8080/UniTime"
 
-        download_dir = os.path.dirname(export_target)
+        # --- 2. EXPORT PATH CONFIG ---
+        export_target_relative = self.get_tool_config("SCHEDULE_EXPORT_PATH")
+        if not export_target_relative:
+            return "Error: SCHEDULE_EXPORT_PATH is not configured."
 
-        options = webdriver.ChromeOptions()
-        options.add_argument("--headless")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
+        export_target_absolute = os.path.abspath(export_target_relative)
+        export_dir = os.path.dirname(export_target_absolute)
+        if not os.path.exists(export_dir):
+            os.makedirs(export_dir)
 
-        options.add_experimental_option("prefs", {
-            "download.default_directory": download_dir,
-            "download.prompt_for_download": False,
-            "download.directory_upgrade": True
-        })
-
-        driver = webdriver.Chrome(
-            service=ChromeService(ChromeDriverManager().install()),
-            options=options
+        # --- 3. STATIC DIRECT EXPORT URL ---
+        export_url = (
+            "http://100.73.202.1:8080/UniTime/export"
+            "?q=b9kAn3dLYLA0JdKiMThY0R8V0Kcl9J2NgSA9Rv7ZwT6Z-2sPBFMEsUxU9-dMhkuHExJv2kYc5iTWNGd4Q6cuRzyW9q09RAeQqGhgOLVSD2M"
         )
 
-        wait = WebDriverWait(driver, 20)
+        print(f"--- [Export Bot] Calling Direct Export URL ---\n{export_url}")
 
         try:
-            # --- 1. Open the timetable page ---
-            timetable_url = f"{base_url}/gwt.jsp?page=timetable"
-            print(f"--- [Export Bot] Opening: {timetable_url} ---")
-            driver.get(timetable_url)
+            response = requests.get(export_url, timeout=20)
 
-            # --- 2. Click the Export button ---
-            print("--- [Export Bot] Clicking Export button ---")
-            export_button = wait.until(
-                EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Export']"))
-            )
-            export_button.click()
+            if response.status_code != 200:
+                return f"Error: Export URL returned status {response.status_code}"
 
-            # --- 3. Wait for download ---
-            print("--- [Export Bot] Waiting for file download... ---")
+            # Remove existing file if exists
+            if os.path.exists(export_target_absolute):
+                os.remove(export_target_absolute)
 
-            if not self._wait_for_download(download_dir):
-                return "Error: Download timed out."
+            # Write the CSV
+            with open(export_target_absolute, "wb") as f:
+                f.write(response.content)
 
-            # Identify the most recent CSV file
-            files = [os.path.join(download_dir, f) for f in os.listdir(download_dir) if f.endswith(".csv")]
-            if not files:
-                return "Error: No CSV downloaded."
+            print(f"--- [Export Bot] CSV saved to: {export_target_absolute} ---")
+            return f"Success: Timetable exported to {export_target_absolute}"
 
-            latest_file = max(files, key=os.path.getctime)
-
-            # Rename/move to target path
-            if os.path.exists(export_target):
-                os.remove(export_target)
-
-            os.rename(latest_file, export_target)
-
-            print(f"--- [Export Bot] CSV saved to: {export_target} ---")
-            return f"Success: Timetable exported to {export_target}"
-
-        except TimeoutException:
-            return "Error: UI element not found. UniTime UI may be different."
         except Exception as e:
             return f"Error: {str(e)}"
-        finally:
-            driver.quit()
-            print("--- [Export Bot] WebDriver closed. ---")
