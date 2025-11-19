@@ -7,3 +7,5 @@ __pycache__/
 .venv
 credentials.json
 data/rag_index
+Frontend/node_modules
+Frontend/react-ui

@@ -23,3 +23,5 @@ webdriver-manager
 pandas 
 faiss-cpu 
 sentence-transformers 
+fastapi
+uvicorn
