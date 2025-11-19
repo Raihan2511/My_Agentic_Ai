@@ -68,10 +68,10 @@ def to_langchain_tools(tool_list):
 # 3. GROUP TOOLS PER WORKFLOW/AGENT
 # ===============================
 
-# TEST → Export_Timetable (Fixed Name)
+# TEST → Export_Timetable
 test_tools_raw = [
     t for t in auto_sync_toolkit.get_tools()
-    if t.name == "Export_Timetable"  # <--- FIXED: Matches your tool definition
+    if t.name == "Export_Timetable"
 ]
 
 # READ → Query_Student_Timetable
@@ -80,32 +80,35 @@ read_tools_raw = [
     if t.name == "Query_Student_Timetable"
 ]
 
-# WRITE → Read_Email + Add_Offering_to_Batch_File + Query_Student_Timetable
+# WRITE → Read_Email + Add_Offering_to_Batch_File + Update_Course_File + Query_Student_Timetable
 write_tools_raw = [
     t for t in email_toolkit.get_tools()
     if t.name == "Read_Email"
 ] + [
     t for t in university_toolkit.get_tools()
-    if t.name == "Add_Offering_to_Batch_File"
+    if t.name == "Add_Offering_to_Batch_File" # For INSERTS (appends to batch)
+] + [
+    t for t in university_toolkit.get_tools()
+    if t.name == "Update_Course_File"         # For UPDATES (overwrites update file) <-- ADDED THIS
 ] + [
     t for t in rag_toolkit.get_tools()
     if t.name == "Query_Student_Timetable"
 ]
 
 
-# SYNC → Export_Timetable (Fixed Name) + Refresh_RAG_Database
+# SYNC → Export_Timetable + Refresh_RAG_Database
 sync_tools_raw = [
     t for t in auto_sync_toolkit.get_tools()
-    if t.name == "Export_Timetable"  # <--- FIXED: Matches your tool definition
+    if t.name == "Export_Timetable"
 ] + [
     t for t in rag_toolkit.get_tools()
     if t.name == "Refresh_RAG_Database"
 ]
 
-# IMPORT → Import_Batch_File_to_Unitime
+# IMPORT → Import_File_to_Unitime
 import_tools_raw = [
     t for t in university_toolkit.get_tools()
-    if t.name == "Import_Batch_File_to_Unitime"
+    if t.name == "Import_File_to_Unitime" # <-- UPDATED NAME
 ]
 
 # Convert to LangChain tools
@@ -140,7 +143,7 @@ router_prompt = ChatPromptTemplate.from_messages(
             "- READ: user asks about class times, locations, instructors, or timetable questions.\n"
             "- WRITE: user wants to **add**, **update**, or **modify** a class/offering or process inbox emails.\n"
             "- SYNC: user says 'run the sync', 'refresh the database', or 'run the auto-sync'.\n"
-            "- IMPORT: user says 'import the batch file', 'run the import', or 'push batch data to unitime'.\n\n"
+            "- IMPORT: user says 'import', 'import batch', 'import update', 'push data to unitime'.\n\n"
             "If unsure, choose the closest match.\n"
             "Again, output ONLY one of: TEST, READ, WRITE, SYNC, IMPORT."
         ),
@@ -195,29 +198,30 @@ write_prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            "You are the WRITE agent for university admin tasks. You manage adding and modifying offerings in the local batch file.\n\n"
+            "You are the WRITE agent for university admin tasks. You manage adding and modifying offerings.\n\n"
             "TOOLS:\n"
             "- `Read_Email`: Fetches a list of recent emails and their contents.\n"
-            "- `Add_Offering_to_Batch_File`: Processes natural language (from an email or direct request) and either **appends (insert)** or **finds and replaces (update)** the corresponding XML block in **unitime_batch.xml**.\n"
+            "- `Add_Offering_to_Batch_File`: Use this ONLY for **CREATING NEW** courses. It appends to 'unitime_batch.xml'.\n"
+            "- `Update_Course_File`: Use this ONLY for **UPDATING/MODIFYING** existing courses. It overwrites 'unitime_update.xml'.\n"
             "- `Query_Student_Timetable`: Used to look up existing course data *before* an update.\n\n"
             "WORKFLOW 2: WRITE (Admin Task)\n"
             
             "\n-- NEW INSERTIONS --"
-            "If the user gives you a request for a *new* course or preference (e.g., 'Create a new class...', 'Add an instructor preference...'):\n"
-            "1. Call the `Add_Offering_to_Batch_File` tool. Pass the user's natural language command as the `query_text`.\n"
+            "If the user wants to create a *new* course or preference (e.g., 'Create a new class...', 'Add an instructor preference...'):\n"
+            "1. Call `Add_Offering_to_Batch_File`. Pass the user's request as `query_text`.\n"
             "2. Report the success message.\n\n"
             
-            "\n-- MODIFICATIONS/UPDATES (New Multi-Step Flow) --"
+            "\n-- MODIFICATIONS/UPDATES --"
             "If the user explicitly asks to **'Update'** or **'Modify'** a course (e.g., 'Update the capacity of DRL 101'):\n"
-            "1. **First, Query Existing Data:** Call the `Query_Student_Timetable` tool using the course name/number to retrieve the existing data.\n"
-            "2. **Second, Wait for Confirmation:** Based on the query result, you MUST then ask the user to specify the **exact field and new value** they want to change (e.g., 'I found DRL 101 has title X. What is the new title?').\n"
-            "3. **Third, Execute Modification:** Once the user provides the specific change, call the `Add_Offering_to_Batch_File` tool with the *full, specific update command*.\n"
-            "4. **Report:** Report the success message.\n\n"
+            "1. **First, Query:** Call `Query_Student_Timetable` using the course name to get current data.\n"
+            "2. **Second, Confirm:** Ask the user for the exact field and new value if not already provided.\n"
+            "3. **Third, Execute:** Call `Update_Course_File` with the full update command (e.g., 'Change capacity of DRL 101 to 50').\n"
+            "4. **Report:** Report success. Remind the user they may need to run the 'Import' command to apply changes to UniTime.\n\n"
             
-            "If the user asks to 'process the inbox' or 'add a new class' from an email (can be insert or update):\n"
-            "1. Use `Read_Email` to find the relevant email(s).\n"
-            "2. Call the `Add_Offering_to_Batch_File` tool and pass the full email body as `query_text`.\n"
-            "3. Report the success status.\n"
+            "If processing emails:\n"
+            "1. Use `Read_Email`.\n"
+            "2. If the email is about a NEW class, use `Add_Offering_to_Batch_File`.\n"
+            "3. If the email is about changing/updating a class, use `Update_Course_File`.\n"
         ),
         ("placeholder", "{messages}"),
     ]
@@ -240,8 +244,7 @@ sync_prompt = ChatPromptTemplate.from_messages(
             "You MUST perform these steps in order:\n"
             "1. Call `Export_Timetable` to get the currently active schedule.\n"
             "2. AFTER step 1 succeeds, call `Refresh_RAG_Database`.\n"
-            "3. Finally, inform the user that the sync is complete and the chatbot is updated.\n\n"
-            "You may need multiple tool calls in sequence. Make sure to inspect previous tool results.\n"
+            "3. Finally, inform the user that the sync is complete and the chatbot is updated.\n"
         ),
         ("placeholder", "{messages}"),
     ]
@@ -256,13 +259,14 @@ import_prompt = ChatPromptTemplate.from_messages(
         (
             "system",
             "You are the IMPORT agent for university admin tasks.\n\n"
-            "Your job is to import the local batch file into UniTime.\n\n"
+            "Your job is to import local XML files into UniTime.\n\n"
             "TOOLS:\n"
-            "- `Import_Batch_File_to_Unitime`: Imports the pending batch file into UniTime.\n\n"
+            "- `Import_File_to_Unitime`: Imports a specific XML file. You MUST specify the `filename` argument.\n\n"
             "WORKFLOW 4: IMPORT BATCH (Admin Task)\n"
-            "If the user asks to 'import the batch file', 'run the import', or 'push batch data to unitime':\n"
-            "1. You MUST call the `Import_Batch_File_to_Unitime` tool.\n"
-            "2. Report the result of the import clearly to the user.\n"
+            "1. If the user asks to 'import the batch file' or 'import new courses', call the tool with `filename='unitime_batch.xml'`.\n"
+            "2. If the user asks to 'import the update' or 'apply the changes', call the tool with `filename='unitime_update.xml'`.\n"
+            "3. If unsure, ask the user which file they want to import.\n"
+            "4. Report the result clearly.\n"
         ),
         ("placeholder", "{messages}"),
     ]
@@ -303,7 +307,7 @@ sync_tool_node = ToolNode(sync_tools_lc)
 import_tool_node = ToolNode(import_tools_lc)
 
 
-# Router node itself doesn't change messages; routing is done via route_decision
+# Router node itself doesn't change messages
 def router_node(state: AgentState):
     return {"messages": state["messages"]}
 
@@ -378,7 +382,10 @@ for agent_name, tools_name in [
     workflow.add_conditional_edges(
         agent_name,
         should_continue,
-        {"continue": tools_name, "end": END},
+        {
+            "continue": tools_name,
+            "end": END
+        },
     )
     workflow.add_edge(tools_name, agent_name)
 
@@ -393,14 +400,15 @@ if __name__ == "__main__":
     print("✅ Multi-Agent University Assistant Initialized.")
     print("---")
     print("Examples:")
-    print("  'Where is my CG 101 class?'            -> READ")
-    print("  'Process the new request in the inbox.'-> WRITE")
-    print("  'Add a new offering: CS 4500 ...'      -> WRITE (Insert)")
-    print("  'Update the capacity for DRL 101 to 45.'-> WRITE (Multi-Step Update)")
-    print("  'Run the full auto-sync now.'          -> SYNC")
-    print("  'Import the batch file.'               -> IMPORT")
-    print("  'Test export with selenium.'           -> TEST")
-    print("  'quit' to exit.")
+    print("  'Where is my CG 101 class?'            -> READ")
+    print("  'Process the new request in the inbox.'-> WRITE")
+    print("  'Add a new offering: CS 4500 ...'      -> WRITE (Insert)")
+    print("  'Update the capacity for DRL 101.'     -> WRITE (Update)")
+    print("  'Run the full auto-sync now.'          -> SYNC")
+    print("  'Import the batch file.'               -> IMPORT (Batch)")
+    print("  'Import the update.'                   -> IMPORT (Update)")
+    print("  'Test export with selenium.'           -> TEST")
+    print("  'quit' to exit.")
     print("---")
 
     while True:
