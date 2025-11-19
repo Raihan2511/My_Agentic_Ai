@@ -1,0 +1,22 @@
+<offerings campus="woebegon"
+           year="2010"
+           term="Fal"
+           dateFormat="yyyy/M/d"
+           timeFormat="HHmm"
+           created="Sat Oct 18 19:33:17 CEST 2025"
+           includeExams="none"
+           incremental="true">
+
+  <offering offered="true" action="update">
+    <course subject="DLCS" courseNbr="101" controlling="true" title="DLCS_101"/>
+    <config name="1" limit="30">
+      <subpart type="Lec" suffix="" minPerWeek="75"/>
+      <class type="Lec" suffix="L1" limit="30"
+             studentScheduling="true" displayInScheduleBook="true"
+             cancelled="false" managingDept="0100">
+        <time days="MWF" startTime="0930" endTime="1020" timePattern="3 x 50"/>
+        <room building="EDUC" roomNbr="105"/>
+      </class>
+    </config>
+  </offering>
+</offerings>

@@ -56,10 +56,10 @@ from Backend.tool_framework.base_toolkit import BaseToolkit
 from Backend.tool_framework.tool_config import ToolConfiguration
 from Backend.types.key_type import ToolConfigKeyType
 
-# --- Tool Imports (CHANGED) ---
+# --- Tool Imports ---
 from Backend.Tools.university.add_to_batch_file import AddToBatchFileTool
 from Backend.Tools.university.import_batch_file import ImportBatchFileTool
-
+from Backend.Tools.university.update_course_file import UpdateCourseFileTool  # <-- Added import
 
 class UniversityToolkit(BaseToolkit, ABC):
     name: str = "University Toolkit"
@@ -67,17 +67,19 @@ class UniversityToolkit(BaseToolkit, ABC):
 
     def get_tools(self) -> List[BaseTool]:
         """Returns a list of tools available in this toolkit."""
-        # --- (CHANGED) ---
-        return [AddToBatchFileTool(), ImportBatchFileTool()]
+        return [
+            AddToBatchFileTool(), 
+            ImportBatchFileTool(),
+            UpdateCourseFileTool() # <-- Added tool instance
+        ]
 
     def get_env_keys(self) -> List[ToolConfiguration]:
         """Defines the environment variables required for the tools in this toolkit."""
-        # --- (CHANGED) ---
         return [
-            # For the classifier LLM (in AddToBatchFileTool)
+            # For the classifier LLM (Shared by AddToBatch and UpdateCourse)
             ToolConfiguration(key="GOOGLE_API_KEY", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=True),
             
-            # For the fine-tuned models (in AddToBatchFileTool)
+            # For the fine-tuned models (Shared by AddToBatch and UpdateCourse)
             ToolConfiguration(key="BASE_MODEL_ID", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=False),
             ToolConfiguration(key="OFFERING_MODEL_PATH", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=False),
             ToolConfiguration(key="PREFERENCE_MODEL_PATH", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=False),

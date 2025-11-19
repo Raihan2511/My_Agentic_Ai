@@ -120,15 +120,12 @@
 
 
 
-# Backend/Tools/university/import_batch_file.py
-
 import os
 import sys
 import requests
-from requests.auth import HTTPBasicAuth
+from requests.auth import HTTPBasicAuth 
 from pydantic import BaseModel, Field
-from typing import Type, ClassVar
-import datetime 
+from typing import Type
 
 # --- Project Path Setup ---
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
@@ -138,73 +135,65 @@ if PROJECT_ROOT not in sys.path:
 from Backend.tool_framework.base_tool import BaseTool
 
 # --- Pydantic Input Schema ---
-class ImportBatchInput(BaseModel):
-    pass 
+class ImportBatchFileInput(BaseModel):
+    # KEY CHANGE: We ask the AI to tell us WHICH file to import
+    filename: str = Field(..., description="The name of the XML file to import. Use 'unitime_batch.xml' for new courses (inserts) or 'unitime_update.xml' for updates.")
 
 # --- Tool Class Definition ---
 class ImportBatchFileTool(BaseTool):
     """
-    Imports the *entire* 'unitime_batch.xml' file to UniTime.
-    This tool DOES NOT reset or clear the file.
+    A tool that reads XML data from a specified local file and sends it to the 
+    UniTime dataexchange API endpoint for processing.
     """
-    name: str = "Import_Batch_File_to_Unitime"
-    description: str = "Imports the entire batch XML file into the UniTime system. This will NOT reset the file."
-    args_schema: Type[BaseModel] = ImportBatchInput
+    name: str = "Import_File_to_Unitime" 
+    description: str = "Imports a specific local XML file into UniTime. You must specify if you are importing the batch file or the update file."
+    args_schema: Type[BaseModel] = ImportBatchFileInput
     
-    # Define the name of your permanent batch file
-    BATCH_FILE_NAME: ClassVar[str] = "unitime_batch.xml"
-
-    def _get_batch_file_path(self) -> str:
-        """Helper to get the full path to the batch file."""
-        return os.path.join(PROJECT_ROOT, self.BATCH_FILE_NAME)
-
-    # --- _reset_batch_file METHOD HAS BEEN DELETED ---
-
-    def _execute(self) -> str:
+    def _execute(self, filename: str) -> str:
         
-        batch_file_path = self._get_batch_file_path()
-
-        # --- Step 1: Read the batch file ---
-        if not os.path.exists(batch_file_path):
-            return "Error: The batch file 'unitime_batch.xml' does not exist. Nothing to import."
-
-        with open(batch_file_path, "r", encoding="utf-8") as f:
-            final_xml_data = f.read()
-
-        # --- Step 2: Send the XML ---
+        # --- Step 1: Read XML Data from the Requested File ---
+        file_path = os.path.join(PROJECT_ROOT, filename)
         
+        if not os.path.exists(file_path):
+            return f"Error: The file '{filename}' was not found. Please generate the file first before importing."
+            
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                unitime_xml_data = f.read()
+        except Exception as e:
+            return f"Error: Failed to read content from file '{filename}': {e}"
+        
+        # --- Step 2: Load Credentials ---
         api_url = self.get_tool_config("UNITIME_API_URL")
-        username = self.get_tool_config("UNITIME_USERNAME")
-        password = self.get_tool_config("UNITIME_PASSWORD")
+        username = self.get_tool_config("UNITIME_USERNAME") 
+        password = self.get_tool_config("UNITIME_PASSWORD") 
         
         if not api_url or not username or not password:
-            return "Error: Missing UNITIME_API_URL, UNITIME_USERNAME, or UNITIME_PASSWORD in the environment configuration."
+            return "Error: Missing UNITIME credentials in configuration."
 
         headers = {
             "Content-Type": "application/xml;charset=UTF-8"
         }
         
+        # --- Step 3: API Request ---
         try:
-            print(f"--- ATTEMPTING TO POST BATCH XML TO {api_url} using Basic Auth ---")
+            print(f"--- ATTEMPTING TO POST XML from '{filename}' TO UniTime ---")
             
             response = requests.post(
                 api_url, 
-                data=final_xml_data.encode('utf-8'),
+                data=unitime_xml_data.encode('utf-8'), 
                 headers=headers,
                 auth=HTTPBasicAuth(username, password)
             )
             
             response.raise_for_status() 
-
-            # --- Step 3: RESET LOGIC HAS BEEN DELETED ---
-            print("--- Batch import successful. The batch file was NOT reset. ---")
-
-            if "text/html" in response.headers.get("Content-Type", ""):
-                 return f"Successfully imported batch data to UniTime. Server returned an HTML success page (Status: {response.status_code})."
             
-            return f"Successfully imported batch data to UniTime. Server response: {response.text}."
+            if "text/html" in response.headers.get("Content-Type", ""):
+                 return f"Successfully imported {filename}. Server returned HTML status: {response.status_code}."
+            
+            return f"Successfully imported {filename}. Server response: {response.text}"
         
         except requests.exceptions.HTTPError as http_err:
-            return f"Error: HTTP error occurred during UniTime batch import. {http_err} - Response: {http_err.response.text}"
+            return f"Error: HTTP error during import of {filename}: {http_err}"
         except requests.exceptions.RequestException as req_err:
-            return f"Error: A critical request error occurred. {req_err}"
+            return f"Error: Critical request error for {filename}: {req_err}"
