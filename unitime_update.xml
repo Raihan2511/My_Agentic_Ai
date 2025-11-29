@@ -1,22 +1,14 @@
-<offerings campus="woebegon"
-           year="2010"
-           term="Fal"
-           dateFormat="yyyy/M/d"
-           timeFormat="HHmm"
-           created="Sat Oct 18 19:33:17 CEST 2025"
-           includeExams="none"
-           incremental="true">
+<?xml version="1.0" encoding="UTF-8"?>
+<offerings campus="woebegon" year="2010" term="Fal" dateFormat="yyyy/M/d" timeFormat="HHmm" created="Mon Nov 24 23:49:17  2025" includeExams="none" incremental="true">
+<offering action="update" offered="true">
+<course controlling="true" courseNbr="101" subject="DLCS" title="Advanced AI"/>
+<config limit="1" name="1">
+<subpart minPerWeek="150" suffix="" type="Lab"/>
+<class cancelled="false" displayInScheduleBook="true" limit="1" managingDept="0100" studentScheduling="true" suffix="L1" type="Lab">
+<time days="MWF" endTime="0920" startTime="0830" timePattern="3 x 50"/>
+<room building="EDU" roomNbr="106"/>
+</class>
+</config>
+</offering>
 
-  <offering offered="true" action="update">
-    <course subject="DLCS" courseNbr="101" controlling="true" title="DLCS_101"/>
-    <config name="1" limit="30">
-      <subpart type="Lec" suffix="" minPerWeek="75"/>
-      <class type="Lec" suffix="L1" limit="30"
-             studentScheduling="true" displayInScheduleBook="true"
-             cancelled="false" managingDept="0100">
-        <time days="MWF" startTime="0930" endTime="1020" timePattern="3 x 50"/>
-        <room building="EDUC" roomNbr="105"/>
-      </class>
-    </config>
-  </offering>
 </offerings>

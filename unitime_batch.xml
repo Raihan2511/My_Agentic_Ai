@@ -136,4 +136,14 @@
     </config>
   </offering>
 
+<offering action="insert" offered="true">
+<course controlling="true" courseNbr="000" subject="AOL" title="Approximation Online Algorithm"/>
+<config limit="15" name="1">
+<subpart minPerWeek="50" suffix="" type="Lab"/>
+<class cancelled="false" displayInScheduleBook="true" limit="15" managingDept="0100" studentScheduling="true" suffix="L1" type="Lab">
+<time days="Thurs" endTime="1530" startTime="1330" timePattern="1 x 50"/>
+<room building="EDU" roomNbr="501"/>
+</class>
+</config>
+</offering>
 </offerings>

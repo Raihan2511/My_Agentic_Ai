@@ -1,3 +1,4 @@
+# My_Agentic_Ai/multi_agent.py
 import os
 from dotenv import load_dotenv
 from typing import List
@@ -34,6 +35,7 @@ def make_llm():
     return ChatGoogleGenerativeAI(
         model="gemini-2.5-flash-lite",
         google_api_key=google_api_key,
+        temperature=0.0
     )
 
 
@@ -80,19 +82,25 @@ read_tools_raw = [
     if t.name == "Query_Student_Timetable"
 ]
 
-# WRITE → Read_Email + Add_Offering_to_Batch_File + Update_Course_File + Query_Student_Timetable
+# WRITE → All admin tools (Email, Add, Update, Prefs, Factory, RAG)
 write_tools_raw = [
     t for t in email_toolkit.get_tools()
     if t.name == "Read_Email"
 ] + [
     t for t in university_toolkit.get_tools()
-    if t.name == "Add_Offering_to_Batch_File" # For INSERTS (appends to batch)
+    if t.name == "Add_Offering_to_Batch_File"
 ] + [
     t for t in university_toolkit.get_tools()
-    if t.name == "Update_Course_File"         # For UPDATES (overwrites update file) <-- ADDED THIS
+    if t.name == "Update_Course_File"
 ] + [
     t for t in rag_toolkit.get_tools()
     if t.name == "Query_Student_Timetable"
+] + [
+    t for t in university_toolkit.get_tools()
+    if t.name == "Model_Prompt_Factory"  # <--- ADDED for updates
+] + [
+    t for t in university_toolkit.get_tools()
+    if t.name == "Add_Preference_to_Batch" # <--- ADDED for preferences
 ]
 
 
@@ -108,7 +116,7 @@ sync_tools_raw = [
 # IMPORT → Import_File_to_Unitime
 import_tools_raw = [
     t for t in university_toolkit.get_tools()
-    if t.name == "Import_File_to_Unitime" # <-- UPDATED NAME
+    if t.name == "Import_File_to_Unitime"
 ]
 
 # Convert to LangChain tools
@@ -193,35 +201,81 @@ read_llm = make_llm().bind_tools(read_tools_lc)
 read_chain = read_prompt | read_llm
 
 
-# --- WRITE Agent ---
+# --- WRITE Agent (FULL LOGIC: Add, Update, Prefs, Emails) ---
+# write_prompt = ChatPromptTemplate.from_messages(
+#     [
+#         (
+#             "system",
+#             "You are the WRITE agent. You are responsible for safe, accurate updates to course data.\n\n"
+            
+#             "TOOLS:\n"
+#             "- `Read_Email`: Fetches recent emails.\n"
+#             "- `Add_Offering_to_Batch_File`: Appends NEW courses to 'unitime_batch.xml'.\n"
+#             "- `Add_Preference_to_Batch`: Appends NEW preferences to 'unitime_batch.xml'.\n"
+#             "- `Update_Course_File`: Overwrites 'unitime_update.xml' with modifications.\n"
+#             "- `Query_Student_Timetable`: Fetches current course details (Room, Time, Title, etc.).\n"
+#             "- `Model_Prompt_Factory`: Converts data into the EXACT training string for updates.\n\n"
+            
+#             "WORKFLOW 1: UPDATING A COURSE (Context-Aware)\n"
+#             "If user wants to update/modify a course (e.g., 'Change title of DLCS 101'):\n"
+#             "1. **FETCH:** Call `Query_Student_Timetable` for the ID (e.g. 'DLCS 101'). Get ALL details.\n"
+#             "2. **MERGE:** Compare Current Details vs. Request. Keep what didn't change.\n"
+#             "3. **FORMAT:** Call `Model_Prompt_Factory` with the merged data.\n"
+#             "4. **EXECUTE:** Call `Update_Course_File` with the output from step 3.\n"
+#             "5. **REPORT:** Success.\n\n"
+            
+#             "WORKFLOW 2: ADDING DATA\n"
+#             "- If adding a **COURSE**: Call `Add_Offering_to_Batch_File` with the request text.\n"
+#             "- If adding a **PREFERENCE** (e.g., 'Instructor Doe needs a projector'): Call `Add_Preference_to_Batch` with the request text.\n\n"
+            
+#             "WORKFLOW 3: PROCESSING EMAILS\n"
+#             "If the user says 'Check email' or 'Process inbox':\n"
+#             "1. Call `Read_Email`.\n"
+#             "2. For EACH email found, analyze the content:\n"
+#             "   - **Is it a new course?** -> Use Workflow 2 (`Add_Offering_to_Batch_File`).\n"
+#             "   - **Is it a preference request?** -> Use Workflow 2 (`Add_Preference_to_Batch`).\n"
+#             "   - **Is it an update?** -> Use Workflow 1 (Fetch -> Merge -> Format -> Execute).\n"
+#             "3. Summarize actions taken."
+#         ),
+#         ("placeholder", "{messages}"),
+#     ]
+# )
+
 write_prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            "You are the WRITE agent for university admin tasks. You manage adding and modifying offerings.\n\n"
+            "You are the WRITE agent. You are responsible for safe, accurate updates to course data.\n\n"
+            
             "TOOLS:\n"
-            "- `Read_Email`: Fetches a list of recent emails and their contents.\n"
-            "- `Add_Offering_to_Batch_File`: Use this ONLY for **CREATING NEW** courses. It appends to 'unitime_batch.xml'.\n"
-            "- `Update_Course_File`: Use this ONLY for **UPDATING/MODIFYING** existing courses. It overwrites 'unitime_update.xml'.\n"
-            "- `Query_Student_Timetable`: Used to look up existing course data *before* an update.\n\n"
-            "WORKFLOW 2: WRITE (Admin Task)\n"
+            "- `Read_Email`: Fetches recent emails.\n"
+            "- `Add_Offering_to_Batch_File`: Appends NEW courses to 'unitime_batch.xml'.\n"
+            "- `Add_Preference_to_Batch`: Appends NEW preferences to 'unitime_batch.xml'.\n"
+            "- `Update_Course_File`: Overwrites 'unitime_update.xml' with modifications.\n"
+            "- `Query_Student_Timetable`: Fetches current course details (Room, Time, Title, etc.).\n"
+            "- `Model_Prompt_Factory`: Converts data into the EXACT training string for updates.\n\n"
             
-            "\n-- NEW INSERTIONS --"
-            "If the user wants to create a *new* course or preference (e.g., 'Create a new class...', 'Add an instructor preference...'):\n"
-            "1. Call `Add_Offering_to_Batch_File`. Pass the user's request as `query_text`.\n"
-            "2. Report the success message.\n\n"
+            "WORKFLOW 1: UPDATING A COURSE\n"
+            "If user wants to update/modify a course (e.g., 'Change title of DLCS 101'):\n"
+            "1. **FETCH:** Call `Query_Student_Timetable` for the ID.\n"
+            "2. **MERGE:** Compare Current vs. Request.\n"
+            "3. **FORMAT:** Call `Model_Prompt_Factory`.\n"
+            "4. **EXECUTE:** Call `Update_Course_File`.\n"
+            "5. **REPORT:** Success.\n\n"
             
-            "\n-- MODIFICATIONS/UPDATES --"
-            "If the user explicitly asks to **'Update'** or **'Modify'** a course (e.g., 'Update the capacity of DRL 101'):\n"
-            "1. **First, Query:** Call `Query_Student_Timetable` using the course name to get current data.\n"
-            "2. **Second, Confirm:** Ask the user for the exact field and new value if not already provided.\n"
-            "3. **Third, Execute:** Call `Update_Course_File` with the full update command (e.g., 'Change capacity of DRL 101 to 50').\n"
-            "4. **Report:** Report success. Remind the user they may need to run the 'Import' command to apply changes to UniTime.\n\n"
+            "WORKFLOW 2: ADDING DATA\n"
+            "- If adding a **COURSE**: Call `Add_Offering_to_Batch_File` with the request text.\n"
+            "- If adding a **PREFERENCE**: Call `Add_Preference_to_Batch` with the request text.\n\n"
             
-            "If processing emails:\n"
-            "1. Use `Read_Email`.\n"
-            "2. If the email is about a NEW class, use `Add_Offering_to_Batch_File`.\n"
-            "3. If the email is about changing/updating a class, use `Update_Course_File`.\n"
+            "WORKFLOW 3: PROCESSING EMAILS (CRITICAL)\n"
+            "If the user says 'Check email' or 'Process inbox':\n"
+            "1. Call `Read_Email`.\n"
+            "2. **FILTER STEP:** When you receive the list of emails, IGNORE any emails from 'Uber', 'Medium', 'LinkedIn', or obvious marketing/spam.\n"
+            "3. **ACTION STEP:** Look strictly for Course/University related subjects (e.g. 'Request to Add', 'Update Class', 'Preference').\n"
+            "   - Found a **NEW COURSE** request? -> IMMEDIATELY Call `Add_Offering_to_Batch_File` with that email's body.\n"
+            "   - Found a **PREFERENCE** request? -> IMMEDIATELY Call `Add_Preference_to_Batch` with that email's body.\n"
+            "   - Found an **UPDATE** request? -> Use Workflow 1 logic.\n"
+            "4. **REPORT:** Tell the user exactly which email you processed and which you ignored."
         ),
         ("placeholder", "{messages}"),
     ]
@@ -400,14 +454,15 @@ if __name__ == "__main__":
     print("✅ Multi-Agent University Assistant Initialized.")
     print("---")
     print("Examples:")
-    print("  'Where is my CG 101 class?'            -> READ")
-    print("  'Process the new request in the inbox.'-> WRITE")
-    print("  'Add a new offering: CS 4500 ...'      -> WRITE (Insert)")
-    print("  'Update the capacity for DRL 101.'     -> WRITE (Update)")
-    print("  'Run the full auto-sync now.'          -> SYNC")
-    print("  'Import the batch file.'               -> IMPORT (Batch)")
-    print("  'Import the update.'                   -> IMPORT (Update)")
-    print("  'Test export with selenium.'           -> TEST")
+    print("  'Where is my CG 101 class?'             -> READ")
+    print("  'Process the new request in the inbox.' -> WRITE (Emails -> Add/Update/Pref)")
+    print("  'Add a new offering: CS 4500 ...'       -> WRITE (Insert Course)")
+    print("  'Instructor Doe needs a projector.'     -> WRITE (Insert Preference)")
+    print("  'Update DLCS 101 to title \"Advanced AI\"' -> WRITE (Update Course)")
+    print("  'Run the full auto-sync now.'           -> SYNC")
+    print("  'Import the batch file.'                -> IMPORT (Batch)")
+    print("  'Import the update.'                    -> IMPORT (Update)")
+    print("  'Test export with selenium.'            -> TEST")
     print("  'quit' to exit.")
     print("---")
 
