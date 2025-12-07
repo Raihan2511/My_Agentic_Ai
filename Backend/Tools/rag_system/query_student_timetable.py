@@ -13,7 +13,8 @@ from Backend.tool_framework.base_tool import BaseTool
 # --- LangChain Imports ---
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_google_genai import ChatGoogleGenerativeAI
+# CHANGED: Switched from Google to OpenAI (Krutrim compatible)
+from langchain_openai import ChatOpenAI 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
@@ -39,8 +40,6 @@ class QueryStudentTimetableTool(BaseTool):
             or os.path.join(PROJECT_ROOT, "data/rag_index")
         )
 
-        google_api_key = self.get_tool_config("GOOGLE_API_KEY")
-
         # Ensure index path is a directory
         if not isinstance(index_path, str):
             return "Error: RAG index path must be a string."
@@ -53,11 +52,22 @@ class QueryStudentTimetableTool(BaseTool):
         # ------------------------------
         try:
             print("--- [RAG Query]: Initializing LLM and embeddings... ---")
-            llm = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash-lite",
-                google_api_key=google_api_key,
+            
+            # --- KRUTRIM CONFIGURATION ---
+            krutrim_api_key = os.getenv("KRUTRIM_API_KEY")
+            # Default to the model you specified if not found in env
+            model_name = os.getenv("LLM_MODEL", "Qwen3-Next-80B-A3B-Instruct")
+
+            if not krutrim_api_key:
+                return "Error: KRUTRIM_API_KEY not found in environment variables."
+
+            llm = ChatOpenAI(
+                model=model_name,
+                api_key=krutrim_api_key,
+                base_url="https://cloud.olakrutrim.com/v1",
                 temperature=0.0
             )
+            # -----------------------------
 
             embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 

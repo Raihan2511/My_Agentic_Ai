@@ -7,7 +7,8 @@ from typing import Type, Any, Optional, ClassVar
 from bs4 import BeautifulSoup 
 
 from pydantic import BaseModel, Field
-from langchain_google_genai import ChatGoogleGenerativeAI
+# --- CHANGED: Use OpenAI client for Krutrim ---
+from langchain_openai import ChatOpenAI
 from transformers import (
     AutoModelForSeq2SeqLM,
     AutoTokenizer, 
@@ -52,12 +53,24 @@ class AddToBatchFileTool(BaseTool):
     def _initialize_classifier(self):
         if self.classifier_llm: return
         try:
-            google_api_key = self.get_tool_config("GOOGLE_API_KEY")
-            self.classifier_llm = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash-lite", 
-                google_api_key=google_api_key,
+            # --- UPDATED FOR KRUTRIM ---
+            # Try to get key from tool config, otherwise fallback to os.getenv
+            krutrim_api_key = self.get_tool_config("KRUTRIM_API_KEY") or os.getenv("KRUTRIM_API_KEY")
+            
+            # Get the model name from .env, default to the one you requested
+            model_name = os.getenv("LLM_MODEL", "Qwen3-Next-80B-A3B-Instruct")
+
+            if not krutrim_api_key:
+                print("Error: KRUTRIM_API_KEY is missing in configuration.")
+                return
+
+            self.classifier_llm = ChatOpenAI(
+                model=model_name,
+                api_key=krutrim_api_key,
+                base_url="https://cloud.olakrutrim.com/v1",
                 temperature=0.0
             )
+            # ---------------------------
         except Exception as e:
             print(f"Error: Failed to initialize Classifier LLM. Exception: {e}")
 

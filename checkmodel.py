@@ -6,7 +6,7 @@ import os
 load_dotenv()
 
 # Retrieve API Key
-api_key = os.getenv("GEMINI_API_KEY")
+api_key = os.getenv("GOOGLE_API_KEY")
 if not api_key:
     raise ValueError("API_KEY is not set. Please check your .envfile.")
 

@@ -1,13 +1,11 @@
-# My_Agentic_Ai/multi_agent.py
 import os
+import warnings
 from dotenv import load_dotenv
-from typing import List
 
 # --- LangChain Imports ---
-from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_google_genai import ChatGoogleGenerativeAI
-# from langchain.tools import StructuredTool
+# CHANGED: Use OpenAI wrapper for Krutrim (since the API is OpenAI-compatible)
+from langchain_openai import ChatOpenAI 
 from langchain_core.tools import StructuredTool
 
 # --- LangGraph Imports ---
@@ -23,31 +21,36 @@ from Backend.Tools.rag_system.rag_toolkit import RAGToolkit
 
 
 # ===============================
-# 1. ENV + BASE LLM
+# 0. SETUP & CONFIG
 # ===============================
 
+# Suppress Pydantic warnings about 'title' fields
+warnings.filterwarnings("ignore", message="Key 'title' is not supported in schema")
+
 load_dotenv()
-# google_api_key = os.getenv("GOOGLE_API_KEY")
-# if not google_api_key:
-#     raise ValueError("GOOGLE_API_KEY not found in .env file. Please set it.")
+krutrim_api_key = os.getenv("KRUTRIM_API_KEY")
 
-# # Base LLM factory
-# def make_llm():
-#     return ChatGoogleGenerativeAI(
-#         model="gemini-2.0-flash",
-#         google_api_key=google_api_key,
-#         temperature=0.0
-#     )
-from langchain_openai import ChatOpenAI  # <--- NEW IMPORT
+if not krutrim_api_key:
+    # Fallback/Check for the key
+    print("⚠️ WARNING: KRUTRIM_API_KEY not found in .env file.")
 
-# Load specific Krutrim key if you have it in .env, or use the variable directly
-krutrim_api_key = os.getenv("KRUTRIM_API_KEY") 
+# ===============================
+# 1. BASE LLM FACTORY (KRUTRIM)
+# ===============================
 
 def make_llm():
+    """
+    Creates the LLM instance using Krutrim's OpenAI-compatible endpoint.
+    Ref: https://cloud.olakrutrim.com/v1/chat/completions
+    """
     return ChatOpenAI(
-        model="Qwen3-Next-80B-A3B-Instruct",          # <--- Krutrim's model name
-        openai_api_key=krutrim_api_key,      # <--- Your Krutrim Key
-        openai_api_base="https://cloud.olakrutrim.com/v1", # <--- Krutrim Endpoint
+        # EXACT model name from your snippet
+        model="Qwen3-Next-80B-A3B-Instruct", 
+        
+        # Point to Krutrim Cloud
+        base_url="https://cloud.olakrutrim.com/v1", 
+        
+        api_key=krutrim_api_key,
         temperature=0.0
     )
 
@@ -95,7 +98,7 @@ read_tools_raw = [
     if t.name == "Query_Student_Timetable"
 ]
 
-# WRITE → All admin tools (Email, Add, Update, Prefs, Factory, RAG)
+# WRITE → All admin tools (Email, Add, Update, Prefs, Factory)
 write_tools_raw = [
     t for t in email_toolkit.get_tools()
     if t.name == "Read_Email"
@@ -110,10 +113,10 @@ write_tools_raw = [
     if t.name == "Query_Student_Timetable"
 ] + [
     t for t in university_toolkit.get_tools()
-    if t.name == "Model_Prompt_Factory"  # <--- ADDED for updates
+    if t.name == "Model_Prompt_Factory"
 ] + [
     t for t in university_toolkit.get_tools()
-    if t.name == "Add_Preference_to_Batch" # <--- ADDED for preferences
+    if t.name == "Add_Preference_to_Batch"
 ]
 
 
@@ -214,46 +217,7 @@ read_llm = make_llm().bind_tools(read_tools_lc)
 read_chain = read_prompt | read_llm
 
 
-# --- WRITE Agent (FULL LOGIC: Add, Update, Prefs, Emails) ---
-# write_prompt = ChatPromptTemplate.from_messages(
-#     [
-#         (
-#             "system",
-#             "You are the WRITE agent. You are responsible for safe, accurate updates to course data.\n\n"
-            
-#             "TOOLS:\n"
-#             "- `Read_Email`: Fetches recent emails.\n"
-#             "- `Add_Offering_to_Batch_File`: Appends NEW courses to 'unitime_batch.xml'.\n"
-#             "- `Add_Preference_to_Batch`: Appends NEW preferences to 'unitime_batch.xml'.\n"
-#             "- `Update_Course_File`: Overwrites 'unitime_update.xml' with modifications.\n"
-#             "- `Query_Student_Timetable`: Fetches current course details (Room, Time, Title, etc.).\n"
-#             "- `Model_Prompt_Factory`: Converts data into the EXACT training string for updates.\n\n"
-            
-#             "WORKFLOW 1: UPDATING A COURSE (Context-Aware)\n"
-#             "If user wants to update/modify a course (e.g., 'Change title of DLCS 101'):\n"
-#             "1. **FETCH:** Call `Query_Student_Timetable` for the ID (e.g. 'DLCS 101'). Get ALL details.\n"
-#             "2. **MERGE:** Compare Current Details vs. Request. Keep what didn't change.\n"
-#             "3. **FORMAT:** Call `Model_Prompt_Factory` with the merged data.\n"
-#             "4. **EXECUTE:** Call `Update_Course_File` with the output from step 3.\n"
-#             "5. **REPORT:** Success.\n\n"
-            
-#             "WORKFLOW 2: ADDING DATA\n"
-#             "- If adding a **COURSE**: Call `Add_Offering_to_Batch_File` with the request text.\n"
-#             "- If adding a **PREFERENCE** (e.g., 'Instructor Doe needs a projector'): Call `Add_Preference_to_Batch` with the request text.\n\n"
-            
-#             "WORKFLOW 3: PROCESSING EMAILS\n"
-#             "If the user says 'Check email' or 'Process inbox':\n"
-#             "1. Call `Read_Email`.\n"
-#             "2. For EACH email found, analyze the content:\n"
-#             "   - **Is it a new course?** -> Use Workflow 2 (`Add_Offering_to_Batch_File`).\n"
-#             "   - **Is it a preference request?** -> Use Workflow 2 (`Add_Preference_to_Batch`).\n"
-#             "   - **Is it an update?** -> Use Workflow 1 (Fetch -> Merge -> Format -> Execute).\n"
-#             "3. Summarize actions taken."
-#         ),
-#         ("placeholder", "{messages}"),
-#     ]
-# )
-
+# --- WRITE Agent ---
 write_prompt = ChatPromptTemplate.from_messages(
     [
         (
@@ -265,8 +229,8 @@ write_prompt = ChatPromptTemplate.from_messages(
             "- `Add_Offering_to_Batch_File`: Appends NEW courses to 'unitime_batch.xml'.\n"
             "- `Add_Preference_to_Batch`: Appends NEW preferences to 'unitime_batch.xml'.\n"
             "- `Update_Course_File`: Overwrites 'unitime_update.xml' with modifications.\n"
-            "- `Query_Student_Timetable`: Fetches current course details (Room, Time, Title, etc.).\n"
-            "- `Model_Prompt_Factory`: Converts data into the EXACT training string for updates.\n\n"
+            "- `Query_Student_Timetable`: Fetches current course details.\n"
+            "- `Model_Prompt_Factory`: Converts data into training strings.\n\n"
             
             "WORKFLOW 1: UPDATING A COURSE\n"
             "If user wants to update/modify a course (e.g., 'Change title of DLCS 101'):\n"
@@ -283,12 +247,12 @@ write_prompt = ChatPromptTemplate.from_messages(
             "WORKFLOW 3: PROCESSING EMAILS (CRITICAL)\n"
             "If the user says 'Check email' or 'Process inbox':\n"
             "1. Call `Read_Email`.\n"
-            "2. **FILTER STEP:** When you receive the list of emails, IGNORE any emails from 'Uber', 'Medium', 'LinkedIn', or obvious marketing/spam.\n"
-            "3. **ACTION STEP:** Look strictly for Course/University related subjects (e.g. 'Request to Add', 'Update Class', 'Preference').\n"
-            "   - Found a **NEW COURSE** request? -> IMMEDIATELY Call `Add_Offering_to_Batch_File` with that email's body.\n"
-            "   - Found a **PREFERENCE** request? -> IMMEDIATELY Call `Add_Preference_to_Batch` with that email's body.\n"
-            "   - Found an **UPDATE** request? -> Use Workflow 1 logic.\n"
-            "4. **REPORT:** Tell the user exactly which email you processed and which you ignored."
+            "2. **FILTER:** Ignore marketing/spam (Uber, LinkedIn, etc).\n"
+            "3. **ACTION:** Look for 'Request to Add', 'Update Class', 'Preference'.\n"
+            "   - **NEW COURSE** -> Call `Add_Offering_to_Batch_File`.\n"
+            "   - **PREFERENCE** -> Call `Add_Preference_to_Batch`.\n"
+            "   - **UPDATE** -> Use Workflow 1.\n"
+            "4. **REPORT:** Summary of actions."
         ),
         ("placeholder", "{messages}"),
     ]
@@ -383,8 +347,13 @@ def route_decision(state: AgentState) -> str:
     """Decide which workflow (TEST/READ/WRITE/SYNC/IMPORT) to route to."""
     last_message = state["messages"][-1]
     user_text = getattr(last_message, "content", str(last_message))
-    route = router_chain.invoke({"input": user_text})
-    choice = route.content.strip().upper()
+    try:
+        route = router_chain.invoke({"input": user_text})
+        choice = route.content.strip().upper()
+    except Exception as e:
+        print(f"Router Error: {e}. Defaulting to READ.")
+        choice = "READ"
+        
     if choice not in ["TEST", "READ", "WRITE", "SYNC", "IMPORT"]:
         choice = "READ"  # default fallback
     print(f"[Router] Routing to: {choice}")
@@ -464,7 +433,7 @@ app = workflow.compile()
 # ===============================
 
 if __name__ == "__main__":
-    print("✅ Multi-Agent University Assistant Initialized.")
+    print("✅ Multi-Agent University Assistant Initialized (Krutrim Powered).")
     print("---")
     print("Examples:")
     print("  'Where is my CG 101 class?'             -> READ")
@@ -488,21 +457,25 @@ if __name__ == "__main__":
         print("\n--- EXECUTING ---")
         state = {"messages": [("user", human_input)]}
 
-        for event in app.stream(state):
-            for node, output in event.items():
-                # Agent messages
-                if "agent" in node and output.get("messages"):
-                    last_msg = output["messages"][-1]
-                    if getattr(last_msg, "tool_calls", None):
-                        print(f"--- [{node}]: Calling {len(last_msg.tool_calls)} tool(s)...")
-                    else:
-                        print(f"--- [{node}]: {last_msg.content}")
+        try:
+            for event in app.stream(state):
+                for node, output in event.items():
+                    # Agent messages
+                    if "agent" in node and output.get("messages"):
+                        last_msg = output["messages"][-1]
+                        if getattr(last_msg, "tool_calls", None):
+                            print(f"--- [{node}]: Calling {len(last_msg.tool_calls)} tool(s)...")
+                        else:
+                            print(f"--- [{node}]: {last_msg.content}")
 
-                # Tool results
-                if "tools" in node and output.get("messages"):
-                    for tool_msg in output["messages"]:
-                        name = getattr(tool_msg, "name", "UnknownTool")
-                        content = getattr(tool_msg, "content", "")
-                        print(f"--- [Tool Result: {name}]: {content}")
-
+                    # Tool results
+                    if "tools" in node and output.get("messages"):
+                        for tool_msg in output["messages"]:
+                            name = getattr(tool_msg, "name", "UnknownTool")
+                            content = getattr(tool_msg, "content", "")
+                            print(f"--- [Tool Result: {name}]: {content}")
+        except Exception as e:
+            print(f"❌ Execution Error: {e}")
+            print("This may happen if the Krutrim API endpoint or Key is invalid.")
+            
         print("--- TASK COMPLETE. Awaiting next command. ---")

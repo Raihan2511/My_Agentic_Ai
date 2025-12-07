@@ -7,7 +7,8 @@ from typing import Type, Any, Optional, ClassVar
 from bs4 import BeautifulSoup
 
 from pydantic import BaseModel, Field
-from langchain_google_genai import ChatGoogleGenerativeAI
+# --- CHANGED: Use OpenAI client for Krutrim ---
+from langchain_openai import ChatOpenAI
 from transformers import (
     AutoModelForSeq2SeqLM,
     AutoTokenizer, 
@@ -47,12 +48,25 @@ class UpdateCourseFileTool(BaseTool):
         self.offering_adapter_path = "/home/sysadm/Music/unitime_nlp/data_generator/Offering-nlp-to-xml_update_v2/checkpoint-875"
 
     def _initialize_classifier(self):
-        # (Same as before, mainly for logging/fallback)
         if self.classifier_llm: return
         try:
-            google_api_key = self.get_tool_config("GOOGLE_API_KEY")
-            self.classifier_llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", google_api_key=google_api_key, temperature=0.0)
-        except Exception: pass
+            # --- UPDATED FOR KRUTRIM ---
+            krutrim_api_key = self.get_tool_config("KRUTRIM_API_KEY") or os.getenv("KRUTRIM_API_KEY")
+            model_name = os.getenv("LLM_MODEL", "Qwen3-Next-80B-A3B-Instruct")
+
+            if not krutrim_api_key:
+                print("Error: KRUTRIM_API_KEY is missing in configuration.")
+                return
+
+            self.classifier_llm = ChatOpenAI(
+                model=model_name,
+                api_key=krutrim_api_key,
+                base_url="https://cloud.olakrutrim.com/v1",
+                temperature=0.0
+            )
+            # ---------------------------
+        except Exception as e:
+            print(f"Error initializing classifier: {e}")
 
     def _load_qlora_pipeline(self, adapter_path: str) -> Any:
         try:
