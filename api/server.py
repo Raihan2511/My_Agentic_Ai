@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import the compiled graph from your multi_agent.py
 # Ensure multi_agent.py has `app = workflow.compile()` accessible
-from multi_agent import app as langgraph_app
+from kurt_multi_agent import app as langgraph_app
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -125,4 +125,4 @@ async def chat(request: ChatRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000,reload=True)

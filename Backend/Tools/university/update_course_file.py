@@ -7,8 +7,9 @@ from typing import Type, Any, Optional, ClassVar
 from bs4 import BeautifulSoup
 
 from pydantic import BaseModel, Field
-# --- CHANGED: Use OpenAI client for Krutrim ---
+# --- KRUTRIM IMPORT ---
 from langchain_openai import ChatOpenAI
+
 from transformers import (
     AutoModelForSeq2SeqLM,
     AutoTokenizer, 
@@ -37,84 +38,121 @@ class UpdateCourseFileTool(BaseTool):
     classifier_llm: Optional[Any] = None
     offering_model: Optional[Any] = None
     tokenizer: Optional[Any] = None
-    base_model_id: Optional[str] = None
-    offering_adapter_path: Optional[str] = None
+    
+    # --- HARDCODED PATHS FROM YOUR WORKING SCRIPT ---
+    base_model_id: str = "Salesforce/codet5p-220m"
+    offering_adapter_path: str = "/home/sysadm/Music/unitime/Offering-nlp-to-xml_update_v2/checkpoint-875"
+    
 
     def __init__(self, **data):
         super().__init__(**data)
         self._initialize_classifier()
-        self.base_model_id = self.get_tool_config("BASE_MODEL_ID")
-        # POINT TO YOUR NEW V2 CHECKPOINT HERE
-        self.offering_adapter_path = "/home/sysadm/Music/unitime_nlp/data_generator/Offering-nlp-to-xml_update_v2/checkpoint-875"
 
     def _initialize_classifier(self):
         if self.classifier_llm: return
         try:
-            # --- UPDATED FOR KRUTRIM ---
+            # Initialize Krutrim for text processing (Subject/Title fixing) if needed later
             krutrim_api_key = self.get_tool_config("KRUTRIM_API_KEY") or os.getenv("KRUTRIM_API_KEY")
             model_name = os.getenv("LLM_MODEL", "Qwen3-Next-80B-A3B-Instruct")
 
-            if not krutrim_api_key:
-                print("Error: KRUTRIM_API_KEY is missing in configuration.")
-                return
-
-            self.classifier_llm = ChatOpenAI(
-                model=model_name,
-                api_key=krutrim_api_key,
-                base_url="https://cloud.olakrutrim.com/v1",
-                temperature=0.0
-            )
-            # ---------------------------
+            if krutrim_api_key:
+                self.classifier_llm = ChatOpenAI(
+                    model=model_name,
+                    api_key=krutrim_api_key,
+                    base_url="https://cloud.olakrutrim.com/v1",
+                    temperature=0.0
+                )
         except Exception as e:
-            print(f"Error initializing classifier: {e}")
+            print(f"Warning: Krutrim Classifier failed to init: {e}")
 
-    def _load_qlora_pipeline(self, adapter_path: str) -> Any:
+    def _load_qlora_pipeline(self) -> Any:
+        """
+        Loads the model EXACTLY like your working snippet.
+        1. BitsAndBytes Config
+        2. Load Base Model (Salesforce/codet5p-220m)
+        3. Load Tokenizer
+        4. Apply Adapter (PeftModel)
+        """
         try:
-            if not self.tokenizer:
-                self.tokenizer = AutoTokenizer.from_pretrained(self.base_model_id, trust_remote_code=True, use_fast=False)
+            print(f"--- Loading Base Model: {self.base_model_id} ---")
             
-            bnb_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.float16)
-            base_model = AutoModelForSeq2SeqLM.from_pretrained(self.base_model_id, quantization_config=bnb_config, device_map="auto", trust_remote_code=True)
-            model = PeftModel.from_pretrained(base_model, adapter_path)
-            model.eval() 
+            # 1. Quantization Config
+            bnb_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.float16,
+            )
+
+            # 2. Load Base Model
+            base_model = AutoModelForSeq2SeqLM.from_pretrained(
+                self.base_model_id,
+                quantization_config=bnb_config,
+                device_map="auto",
+                trust_remote_code=True,
+            )
+
+            # 3. Load Tokenizer
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                self.base_model_id,
+                trust_remote_code=True,
+                use_fast=False,
+            )
+
+            # 4. Load Adapter
+            print(f"--- Loading Adapter: {self.offering_adapter_path} ---")
+            model = PeftModel.from_pretrained(base_model, self.offering_adapter_path)
+            model.eval()
+            
+            print("--- Model Loaded Successfully ---")
             return model
+
         except Exception as e:
+            print(f"CRITICAL ERROR LOADING MODEL: {e}")
+            import traceback
+            traceback.print_exc()
             return None
 
     def _get_update_file_path(self) -> str:
         return os.path.join(PROJECT_ROOT, self.UPDATE_FILE_NAME)
 
     def _execute(self, query_text: str) -> str:
-        if not self.base_model_id: return "Error: Config missing."
-
+        # Load model if not already loaded
         if not self.offering_model:
-            self.offering_model = self._load_qlora_pipeline(self.offering_adapter_path)
+            self.offering_model = self._load_qlora_pipeline()
         
-        if not self.offering_model: return "Error: Model failed to load."
+        if not self.offering_model: 
+            return "Error: Model failed to load. Check console logs for 'CRITICAL ERROR'."
+
+        print(f"--- Generating XML for: {query_text} ---")
 
         # 1. Generate
         try:
             inputs = self.tokenizer(query_text, return_tensors="pt").to(self.offering_model.device)
             with torch.no_grad():
                 outputs = self.offering_model.generate(
-                    input_ids=inputs["input_ids"], attention_mask=inputs["attention_mask"],
-                    max_new_tokens=512, num_beams=4,
-                    pad_token_id=self.tokenizer.pad_token_id, eos_token_id=self.tokenizer.eos_token_id
+                    input_ids=inputs["input_ids"], 
+                    attention_mask=inputs["attention_mask"],
+                    max_new_tokens=512, 
+                    num_beams=4,
+                    pad_token_id=self.tokenizer.pad_token_id, 
+                    eos_token_id=self.tokenizer.eos_token_id
                 )
             xml_output = self.tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
-        except Exception as e: return f"Error inference: {e}"
+            print(f"Raw Output: {xml_output}")
+        except Exception as e: 
+            return f"Error inference: {e}"
 
         # 2. Extract & Correct
         try:
             soup = BeautifulSoup(xml_output, 'xml')
             offering_tag = soup.find('offering')
-            if not offering_tag: return f"Error: Invalid XML. {xml_output}"
+            if not offering_tag: return f"Error: Invalid XML generated. Output: {xml_output}"
 
-            # --- SMART CORRECTION LOGIC ---
+            # --- SMART CORRECTION LOGIC (Matches your snippet) ---
             course_tag = offering_tag.find('course')
             if course_tag and course_tag.has_attr('courseNbr'):
                 xml_course_nbr = course_tag['courseNbr']
-                # Find real subject in user input (e.g. DLCS)
+                # Find real subject in user input (e.g. DLCS 101)
                 pattern = re.compile(rf"([a-zA-Z]+)\s*{xml_course_nbr}", re.IGNORECASE)
                 match = pattern.search(query_text)
                 
@@ -126,16 +164,8 @@ class UpdateCourseFileTool(BaseTool):
                         print(f"⚠️ Fixing Subject: {generated_subject} -> {real_subject}")
                         course_tag['subject'] = real_subject
                         
-                        # SMART TITLE CHECK:
-                        # Only reset title if it looks generic (DLC_101). 
-                        # If it is custom (Advanced AI), KEEP IT.
-                        current_title = course_tag.get('title', '')
-                        generic_pattern = f"{generated_subject}_{xml_course_nbr}"
-                        
-                        if current_title == generic_pattern or current_title == "":
-                            course_tag['title'] = f"{real_subject}_{xml_course_nbr}"
-                        else:
-                            print(f"ℹ️ Preserving custom title: {current_title}")
+                        # Fix Title to match Subject_Number
+                        course_tag['title'] = f"{real_subject}_{xml_course_nbr}"
 
             # 3. Save
             update_file_path = self._get_update_file_path()

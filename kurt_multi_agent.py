@@ -229,8 +229,8 @@ write_prompt = ChatPromptTemplate.from_messages(
             "- `Add_Offering_to_Batch_File`: Appends NEW courses to 'unitime_batch.xml'.\n"
             "- `Add_Preference_to_Batch`: Appends NEW preferences to 'unitime_batch.xml'.\n"
             "- `Update_Course_File`: Overwrites 'unitime_update.xml' with modifications.\n"
-            "- `Query_Student_Timetable`: Fetches current course details.\n"
-            "- `Model_Prompt_Factory`: Converts data into training strings.\n\n"
+            "- `Query_Student_Timetable`: Fetches current course details (Room, Time, Title, etc.).\n"
+            "- `Model_Prompt_Factory`: Converts data into the EXACT training string for updates.\n\n"
             
             "WORKFLOW 1: UPDATING A COURSE\n"
             "If user wants to update/modify a course (e.g., 'Change title of DLCS 101'):\n"
@@ -247,12 +247,12 @@ write_prompt = ChatPromptTemplate.from_messages(
             "WORKFLOW 3: PROCESSING EMAILS (CRITICAL)\n"
             "If the user says 'Check email' or 'Process inbox':\n"
             "1. Call `Read_Email`.\n"
-            "2. **FILTER:** Ignore marketing/spam (Uber, LinkedIn, etc).\n"
-            "3. **ACTION:** Look for 'Request to Add', 'Update Class', 'Preference'.\n"
-            "   - **NEW COURSE** -> Call `Add_Offering_to_Batch_File`.\n"
-            "   - **PREFERENCE** -> Call `Add_Preference_to_Batch`.\n"
-            "   - **UPDATE** -> Use Workflow 1.\n"
-            "4. **REPORT:** Summary of actions."
+            "2. **FILTER STEP:** When you receive the list of emails, IGNORE any emails from 'Uber', 'Medium', 'LinkedIn', or obvious marketing/spam.\n"
+            "3. **ACTION STEP:** Look strictly for Course/University related subjects (e.g. 'Request to Add', 'Update Class', 'Preference').\n"
+            "   - Found a **NEW COURSE** request? -> IMMEDIATELY Call `Add_Offering_to_Batch_File` with that email's body.\n"
+            "   - Found a **PREFERENCE** request? -> IMMEDIATELY Call `Add_Preference_to_Batch` with that email's body.\n"
+            "   - Found an **UPDATE** request? -> Use Workflow 1 logic.\n"
+            "4. **REPORT:** Tell the user exactly which email you processed and which you ignored."
         ),
         ("placeholder", "{messages}"),
     ]

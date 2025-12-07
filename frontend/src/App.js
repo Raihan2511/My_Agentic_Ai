@@ -100,7 +100,7 @@ const MessageBubble = ({ msg, isDarkMode }) => {
         <div className={`relative px-5 py-4 rounded-2xl shadow-sm border ${isUser ? 'bg-blue-600 text-white border-blue-600 rounded-tr-sm' : isError ? 'bg-red-50 border-red-200 text-red-800 rounded-tl-sm' : `${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-100' : 'bg-white border-gray-100 text-gray-800'} rounded-tl-sm`}`}>
           {!isUser && <ToolBlock tools={msg.toolCalls} isDarkMode={isDarkMode} />}
           <div className={isUser ? 'text-white' : ''}>
-            {isUser || !msg.isTyping ? <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p> : <TypewriterText text={msg.text} />}
+            {isUser || !msg.isTyping ? <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p> : msg.text}
           </div>
         </div>
       </div>

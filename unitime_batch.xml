@@ -146,4 +146,14 @@
 </class>
 </config>
 </offering>
+<offering action="insert" offered="true">
+<course controlling="true" courseNbr="201" subject="ALG" title="Algebra I"/>
+<config limit="30" name="1">
+<subpart minPerWeek="150" suffix="" type="Lab"/>
+<class cancelled="false" displayInScheduleBook="true" limit="30" managingDept="0100" studentScheduling="true" suffix="L1" type="Lab">
+<time days="MWF" endTime="0920" startTime="0830" timePattern="3 x 50"/>
+<room building="SCI" roomNbr="301"/>
+</class>
+</config>
+</offering>
 </offerings>
