@@ -1,158 +1,784 @@
-<!-- <?xml version="1.0" encoding="UTF-8"?>
-<offerings campus="woebegon" year="2010" term="Fal" dateFormat="yyyy/M/d" timeFormat="HHmm" created="Sat Oct 18 19:33:17 CEST 2025" includeExams="none" updateCourseOfferings="false">
-
-  <offering offered="true" action="insert">
-    <course subject="DLCS" courseNbr="101" controlling="true" title="DLCS_101 New"/>
-    <config name="1" limit="25">
-      <subpart type="Lec" suffix="" minPerWeek="50"/>
-      <class id="DLCS 10 Lec L1" type="Lec" suffix="L1" limit="25" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
-        <time days="MWF" startTime="0830" endTime="0920" timePattern="2 x 50"/>
-        <room building="EDUC" roomNbr="106"/>
-      </class>
-    </config>
-  </offering>
-
-  <offering offered="true" action="insert">
-    <course subject="MMD" courseNbr="102" controlling="true" title="MMD 101"/>
-    <config name="1" limit="25">
-      <subpart type="Lec" suffix="" minPerWeek="50"/>
-      <class id="MMD 101 Lec L1" type="Lec" suffix="L1" limit="25" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
-        <time days="MWT" startTime="0920" endTime="1000" timePattern="2 x 50"/>
-        <room building="EDUC" roomNbr="101"/>
-      </class>
-    </config>
-  </offering>
-
-  <offering action="insert" offered="true">
-    <course controlling="true" courseNbr="103" subject="CG" title="CG_101_new"/>
-    <config limit="15" name="1">
-      <subpart minPerWeek="75" suffix="" type="Lec"/>
-      <class cancelled="false" displayInScheduleBook="true" id="CG 101 Lec 1" limit="15" managingDept="0100" studentScheduling="true" suffix="1" type="Lec">
-        <time days="M" startTime="1100" endTime="1000" timePattern="1 x 75"/>
-        <room building="EDUC" roomNbr="103"/>
-      </class>
-    </config>
-  </offering>
-
-  <offering action="insert" offered="true">
-    <course controlling="true" courseNbr="104" subject="DRL" title="DRL_101_new"/>
-    <config limit="10" name="1">
-      <subpart minPerWeek="50" suffix="" type="Lec"/>
-      <class cancelled="false" displayInScheduleBook="true" id="DRL 101 Lec R1" limit="10" managingDept="0100" studentScheduling="true" suffix="R1" type="Lec">
-        <time days="T" startTime="1030" endTime="1200" timePattern="1 x 50"/>
-        <room building="EDUC" roomNbr="104"/>
-      </class>
-    </config>
-  </offering>
-
-    <offering action="insert" offered="true">
-    <course controlling="true" courseNbr="105" subject="MVS" title="MVS_101"/>
-    <config limit="1" name="1">
-      <subpart minPerWeek="50" suffix="" type="Lec"/>
-      <class cancelled="false" displayInScheduleBook="true" id="MVS 101 Lec R1" limit="10" managingDept="0100" studentScheduling="true" suffix="R1" type="Lec">
-        <time days="TH" startTime="1430" endTime="1600" timePattern="2 x 50"/>
-        <room building="EDUC" roomNbr="105"/>
-      </class>
-    </config>
-  </offering>
-
-</offerings> -->
-
-
-
-
-
-<!-- <?xml version="1.0" encoding="UTF-8"?> -->
-<offerings campus="woebegon"
-           year="2010"
-           term="Fal"
-           dateFormat="yyyy/M/d"
-           timeFormat="HHmm"
-           created="Sat Oct 18 19:33:17 CEST 2025"
-           includeExams="none">
-
-  <offering offered="true" action="insert">
-    <course subject="DLCS" courseNbr="101" controlling="true" title="DLCS_101 NEW"/>
-    <config name="1" limit="25">
-      <subpart type="Lec" suffix="" minPerWeek="50"/>
-      <class id="DLCS 10 Lec L1" type="Lec" suffix="L1" limit="25"
-             studentScheduling="true" displayInScheduleBook="true"
-             cancelled="false" managingDept="0100">
-        <time days="MWF" startTime="0830" endTime="0920" timePattern="2 x 50"/>
-        <room building="EDUC" roomNbr="106"/>
-      </class>
-    </config>
-  </offering>
-
-  <offering offered="true" action="insert">
-    <course subject="MMD" courseNbr="102" controlling="true" title="MMD 101 NEW"/>
-    <config name="1" limit="25">
-      <subpart type="Lec" suffix="" minPerWeek="50"/>
-      <class id="MMD 101 Lec L1" type="Lec" suffix="L1" limit="25"
-             studentScheduling="true" displayInScheduleBook="true"
-             cancelled="false" managingDept="0100">
-        <time days="MWT" startTime="0920" endTime="1000" timePattern="2 x 50"/>
-        <room building="EDUC" roomNbr="101"/>
-      </class>
-    </config>
-  </offering>
-
-  <offering action="insert" offered="true">
-    <course controlling="true" courseNbr="103" subject="CG" title="CG 101 NEW"/>
-    <config limit="15" name="1">
-      <subpart minPerWeek="75" suffix="" type="Lec"/>
-      <class cancelled="false" displayInScheduleBook="true" id="CG 101 Lec 1"
-             limit="15" managingDept="0100" studentScheduling="true"
-             suffix="1" type="Lec">
-        <time days="M" startTime="1100" endTime="1000" timePattern="1 x 75"/>
-        <room building="EDUC" roomNbr="103"/>
-      </class>
-    </config>
-  </offering>
-
-  <offering action="insert" offered="true">
-    <course controlling="true" courseNbr="104" subject="DRL" title="DRL_101 NEW"/>
-    <config limit="10" name="1">
-      <subpart minPerWeek="50" suffix="" type="Lec"/>
-      <class cancelled="false" displayInScheduleBook="true" id="DRL 101 Lec R1"
-             limit="10" managingDept="0100" studentScheduling="true"
-             suffix="R1" type="Lec">
-        <time days="T" startTime="1030" endTime="1200" timePattern="1 x 50"/>
-        <room building="EDUC" roomNbr="104"/>
-      </class>
-    </config>
-  </offering>
-
-  <offering action="insert" offered="true">
-    <course controlling="true" courseNbr="105" subject="MVS" title="MVS_101 NEW"/>
-    <config limit="1" name="1">
-      <subpart minPerWeek="50" suffix="" type="Lec"/>
-      <class cancelled="false" displayInScheduleBook="true" id="MVS 101 Lec R1"
-             limit="10" managingDept="0100" studentScheduling="true"
-             suffix="R1" type="Lec">
-        <time days="TH" startTime="1430" endTime="1600" timePattern="2 x 50"/>
-        <room building="EDUC" roomNbr="105"/>
-      </class>
-    </config>
-  </offering>
-
-<offering action="insert" offered="true">
-<course controlling="true" courseNbr="000" subject="AOL" title="Approximation Online Algorithm"/>
-<config limit="15" name="1">
-<subpart minPerWeek="50" suffix="" type="Lab"/>
-<class cancelled="false" displayInScheduleBook="true" limit="15" managingDept="0100" studentScheduling="true" suffix="L1" type="Lab">
-<time days="Thurs" endTime="1530" startTime="1330" timePattern="1 x 50"/>
-<room building="EDU" roomNbr="501"/>
+This XML file does not appear to have any style information associated with it. The document tree is shown below.
+<offerings campus="woebegon" year="2010" term="Fal" dateFormat="yyyy/M/d" timeFormat="HHmm" created="Thu Dec 11 00:14:18 IST 2025" includeExams="none">
+<offering id="132351" offered="true" action="insert">
+<course id="135753" subject="ALG" courseNbr="101" controlling="true" title="Algebra I">
+<courseCredit creditType="collegiate" creditUnitType="semesterHours" creditFormat="fixedUnit" fixedCredit="3.0"/>
+</course>
+<config name="1" limit="2">
+<subpart type="Lec" suffix="" minPerWeek="150">
+<subpartCredit creditType="collegiate" creditUnitType="semesterHours" creditFormat="fixedUnit" fixedCredit="3.0"/>
+</subpart>
+<class id="ALG 101 Lec 1" type="Lec" suffix="1" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="MWF" startTime="0930" endTime="1020" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="103"/>
+<instructor id="100" fname="JOE" lname="DOE" share="100" lead="true"/>
 </class>
 </config>
 </offering>
-<offering action="insert" offered="true">
-<course controlling="true" courseNbr="201" subject="ALG" title="Algebra I"/>
-<config limit="30" name="1">
-<subpart minPerWeek="150" suffix="" type="Lab"/>
-<class cancelled="false" displayInScheduleBook="true" limit="30" managingDept="0100" studentScheduling="true" suffix="L1" type="Lab">
-<time days="MWF" endTime="0920" startTime="0830" timePattern="3 x 50"/>
-<room building="SCI" roomNbr="301"/>
+<offering id="132352" offered="true" action="insert">
+<course id="135754" subject="BAND" courseNbr="101" controlling="true" title="Band"/>
+<config name="1" limit="4">
+<subpart type="Lec" suffix="" minPerWeek="500"/>
+<class id="BAND 101 Lec 1" type="Lec" suffix="1" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<time days="MTWThF" startTime="1530" endTime="1720" timePattern="5 x 100"/>
+<room building="EDUC" roomNbr="101"/>
+</class>
+</config>
+</offering>
+<offering id="132353" offered="true" action="insert">
+<course id="135755" subject="BIOL" courseNbr="101" controlling="true" title="Introduction to Biology"/>
+<config name="1" limit="11">
+<subpart type="Lec" suffix="" minPerWeek="100"/>
+<subpart type="Lab" suffix="" minPerWeek="100"/>
+<subpart type="Rec" suffix="" minPerWeek="50"/>
+<subpart type="Pso" suffix="" minPerWeek="50"/>
+<class id="BIOL 101 Lec 1" type="Lec" suffix="1" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<time days="MF" startTime="1430" endTime="1520" timePattern="2 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+<instructor id="101" fname="GEORGE" lname="NEWMAN" share="100" lead="true"/>
+</class>
+<class id="BIOL 101 Lec 3" type="Lec" suffix="3" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<time days="MF" startTime="0930" endTime="1020" timePattern="2 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+<instructor id="101" fname="GEORGE" lname="NEWMAN" share="100" lead="true"/>
+</class>
+<class id="BIOL 101 Lec 2" type="Lec" suffix="2" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<time days="TTh" startTime="0730" endTime="0820" timePattern="2 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+<instructor id="101" fname="GEORGE" lname="NEWMAN" share="100" lead="true"/>
+</class>
+<class id="BIOL 101 Lab 11" type="Lab" suffix="11" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="1330" endTime="1520" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<class id="BIOL 101 Lab 10" type="Lab" suffix="10" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="1130" endTime="1320" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<class id="BIOL 101 Lab 1" type="Lab" suffix="1" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="1130" endTime="1320" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<class id="BIOL 101 Lab 5" type="Lab" suffix="5" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="1530" endTime="1720" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<class id="BIOL 101 Lab 4" type="Lab" suffix="4" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="Th" startTime="1130" endTime="1320" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<class id="BIOL 101 Lab 3" type="Lab" suffix="3" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="0930" endTime="1120" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<class id="BIOL 101 Lab 2" type="Lab" suffix="2" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="1530" endTime="1720" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<class id="BIOL 101 Lab 9" type="Lab" suffix="9" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="0730" endTime="0920" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<class id="BIOL 101 Lab 8" type="Lab" suffix="8" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="Th" startTime="0930" endTime="1120" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<class id="BIOL 101 Lab 7" type="Lab" suffix="7" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="Th" startTime="0730" endTime="0920" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<class id="BIOL 101 Lab 6" type="Lab" suffix="6" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="1330" endTime="1520" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<class id="BIOL 101 Rec 1" type="Rec" suffix="1" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="M" startTime="1130" endTime="1220" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="BIOL 101 Rec 5" type="Rec" suffix="5" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="1130" endTime="1220" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="BIOL 101 Rec 4" type="Rec" suffix="4" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="M" startTime="1330" endTime="1420" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="BIOL 101 Rec 3" type="Rec" suffix="3" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="Th" startTime="1330" endTime="1420" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="BIOL 101 Rec 2" type="Rec" suffix="2" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="0730" endTime="0820" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="BIOL 101 Rec 9" type="Rec" suffix="9" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="0730" endTime="0820" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="BIOL 101 Rec 8" type="Rec" suffix="8" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="1530" endTime="1620" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<class id="BIOL 101 Rec 7" type="Rec" suffix="7" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="1330" endTime="1420" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="BIOL 101 Rec 6" type="Rec" suffix="6" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="0930" endTime="1020" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="BIOL 101 Rec 11" type="Rec" suffix="11" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="0930" endTime="1020" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="BIOL 101 Rec 10" type="Rec" suffix="10" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="1030" endTime="1120" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<class id="BIOL 101 Pso 3" type="Pso" suffix="3" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<time days="Th" startTime="0830" endTime="0920" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+<instructor id="101" fname="GEORGE" lname="NEWMAN" share="100" lead="true"/>
+</class>
+<class id="BIOL 101 Pso 2" type="Pso" suffix="2" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<time days="W" startTime="0930" endTime="1020" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+<instructor id="101" fname="GEORGE" lname="NEWMAN" share="100" lead="true"/>
+</class>
+<class id="BIOL 101 Pso 1" type="Pso" suffix="1" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<time days="W" startTime="1430" endTime="1520" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+<instructor id="101" fname="GEORGE" lname="NEWMAN" share="100" lead="true"/>
+</class>
+</config>
+</offering>
+<offering id="132354" offered="false" action="insert">
+<course id="135756" subject="BIOL" courseNbr="201" controlling="true" title="Principles of Microbiology"/>
+</offering>
+<offering id="132355" offered="true" action="insert">
+<course id="135757" subject="C S" courseNbr="101" controlling="true" title="Introductory Computing"/>
+<config name="1" limit="4">
+<subpart type="Lab" suffix="" minPerWeek="100"/>
+<subpart type="Lec" suffix="" minPerWeek="100"/>
+<class id="C S 101 Lab 3" type="Lab" suffix="3" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="0930" endTime="1120" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<class id="C S 101 Lab 2" type="Lab" suffix="2" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="0730" endTime="0920" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<class id="C S 101 Lab 1" type="Lab" suffix="1" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="1130" endTime="1320" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<class id="C S 101 Lab 4" type="Lab" suffix="4" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="M" startTime="1330" endTime="1520" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<class id="C S 101 Lec 2" type="Lec" suffix="2" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="MW" startTime="1230" endTime="1320" timePattern="2 x 50"/>
+<room building="EDUC" roomNbr="103"/>
+<instructor id="100" fname="JOE" lname="DOE" share="100" lead="true"/>
+</class>
+<class id="C S 101 Lec 1" type="Lec" suffix="1" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="MF" startTime="1330" endTime="1420" timePattern="2 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+<instructor id="100" fname="JOE" lname="DOE" share="100" lead="true"/>
+</class>
+</config>
+</offering>
+<offering id="132356" offered="true" action="insert">
+<course id="135758" subject="CALC" courseNbr="101" controlling="true" title="Calculus"/>
+<config name="1" limit="12">
+<subpart type="Lec" suffix="" minPerWeek="150">
+<subpart type="Rec" suffix="" minPerWeek="50"/>
+</subpart>
+<class id="CALC 101 Lec 3" type="Lec" suffix="3" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<class id="CALC 101 Rec 9" type="Rec" suffix="9" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="1330" endTime="1420" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+<instructor id="102" fname="JOHN" mname="WILLIAM" lname="SMITH" share="100" lead="true"/>
+</class>
+<class id="CALC 101 Rec 11" type="Rec" suffix="11" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="Th" startTime="1230" endTime="1320" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+<instructor id="102" fname="JOHN" mname="WILLIAM" lname="SMITH" share="100" lead="true"/>
+</class>
+<class id="CALC 101 Rec 10" type="Rec" suffix="10" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="1230" endTime="1320" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+<instructor id="102" fname="JOHN" mname="WILLIAM" lname="SMITH" share="100" lead="true"/>
+</class>
+<class id="CALC 101 Rec 12" type="Rec" suffix="12" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="1130" endTime="1220" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+<instructor id="102" fname="JOHN" mname="WILLIAM" lname="SMITH" share="100" lead="true"/>
+</class>
+<time days="MWF" startTime="0830" endTime="0920" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+<instructor id="100" fname="JOE" lname="DOE" share="100" lead="true"/>
+</class>
+<class id="CALC 101 Lec 2" type="Lec" suffix="2" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<class id="CALC 101 Rec 5" type="Rec" suffix="5" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="1430" endTime="1520" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+<instructor id="102" fname="JOHN" mname="WILLIAM" lname="SMITH" share="100" lead="true"/>
+</class>
+<class id="CALC 101 Rec 6" type="Rec" suffix="6" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="1030" endTime="1120" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+<instructor id="102" fname="JOHN" mname="WILLIAM" lname="SMITH" share="100" lead="true"/>
+</class>
+<class id="CALC 101 Rec 7" type="Rec" suffix="7" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="1430" endTime="1520" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+<instructor id="102" fname="JOHN" mname="WILLIAM" lname="SMITH" share="100" lead="true"/>
+</class>
+<class id="CALC 101 Rec 8" type="Rec" suffix="8" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="Th" startTime="1430" endTime="1520" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+<instructor id="102" fname="JOHN" mname="WILLIAM" lname="SMITH" share="100" lead="true"/>
+</class>
+<time days="MWF" startTime="1030" endTime="1120" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+<instructor id="100" fname="JOE" lname="DOE" share="100" lead="true"/>
+</class>
+<class id="CALC 101 Lec 1" type="Lec" suffix="1" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<class id="CALC 101 Rec 1" type="Rec" suffix="1" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="1030" endTime="1120" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+<instructor id="102" fname="JOHN" mname="WILLIAM" lname="SMITH" share="100" lead="true"/>
+</class>
+<class id="CALC 101 Rec 2" type="Rec" suffix="2" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="M" startTime="1030" endTime="1120" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+<instructor id="102" fname="JOHN" mname="WILLIAM" lname="SMITH" share="100" lead="true"/>
+</class>
+<class id="CALC 101 Rec 4" type="Rec" suffix="4" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="1430" endTime="1520" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+<instructor id="102" fname="JOHN" mname="WILLIAM" lname="SMITH" share="100" lead="true"/>
+</class>
+<class id="CALC 101 Rec 3" type="Rec" suffix="3" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="1530" endTime="1620" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+<instructor id="102" fname="JOHN" mname="WILLIAM" lname="SMITH" share="100" lead="true"/>
+</class>
+<time days="MWF" startTime="0730" endTime="0820" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+<instructor id="100" fname="JOE" lname="DOE" share="100" lead="true"/>
+</class>
+</config>
+</offering>
+<offering id="132357" offered="false" action="insert">
+<course id="135759" subject="CHIN" courseNbr="201" controlling="true" title="Advanced Chinese"/>
+</offering>
+<offering id="132358" offered="true" action="insert">
+<course id="135760" subject="CHM" courseNbr="101" controlling="true" title="Chemistry I"/>
+<config name="1" limit="12">
+<subpart type="Lec" suffix="" minPerWeek="100">
+<subpart type="Lab" suffix="" minPerWeek="150">
+<subpart type="Rec" suffix="" minPerWeek="50"/>
+</subpart>
+</subpart>
+<class id="CHM 101 Lec 3" type="Lec" suffix="3" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<class id="CHM 101 Lab 9" type="Lab" suffix="9" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="CHM 101 Rec 9" type="Rec" suffix="9" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="1330" endTime="1420" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<time days="Th" startTime="1500" endTime="1750" timePattern="1 x 150"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<class id="CHM 101 Lab 12" type="Lab" suffix="12" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="CHM 101 Rec 12" type="Rec" suffix="12" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="1330" endTime="1420" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<time days="F" startTime="1130" endTime="1420" timePattern="1 x 150"/>
+<room building="EDUC" roomNbr="106"/>
+</class>
+<class id="CHM 101 Lab 11" type="Lab" suffix="11" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="CHM 101 Rec 11" type="Rec" suffix="11" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="M" startTime="0830" endTime="0920" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<time days="W" startTime="1130" endTime="1420" timePattern="1 x 150"/>
+<room building="EDUC" roomNbr="106"/>
+</class>
+<class id="CHM 101 Lab 10" type="Lab" suffix="10" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="CHM 101 Rec 10" type="Rec" suffix="10" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="Th" startTime="1030" endTime="1120" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<time days="T" startTime="0730" endTime="1020" timePattern="1 x 150"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<time days="TTh" startTime="1130" endTime="1220" timePattern="2 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+</class>
+<class id="CHM 101 Lec 2" type="Lec" suffix="2" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<class id="CHM 101 Lab 7" type="Lab" suffix="7" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="CHM 101 Rec 7" type="Rec" suffix="7" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="1030" endTime="1120" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<time days="W" startTime="1500" endTime="1750" timePattern="1 x 150"/>
+<room building="EDUC" roomNbr="106"/>
+</class>
+<class id="CHM 101 Lab 6" type="Lab" suffix="6" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="CHM 101 Rec 6" type="Rec" suffix="6" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="Th" startTime="1130" endTime="1220" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<time days="W" startTime="0730" endTime="1020" timePattern="1 x 150"/>
+<room building="EDUC" roomNbr="106"/>
+</class>
+<class id="CHM 101 Lab 5" type="Lab" suffix="5" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="CHM 101 Rec 5" type="Rec" suffix="5" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="1130" endTime="1220" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<time days="F" startTime="0730" endTime="1020" timePattern="1 x 150"/>
+<room building="EDUC" roomNbr="106"/>
+</class>
+<class id="CHM 101 Lab 8" type="Lab" suffix="8" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="CHM 101 Rec 8" type="Rec" suffix="8" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="1230" endTime="1320" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+<time days="T" startTime="1130" endTime="1420" timePattern="1 x 150"/>
+<room building="EDUC" roomNbr="106"/>
+</class>
+<time days="TTh" startTime="0930" endTime="1020" timePattern="2 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+</class>
+<class id="CHM 101 Lec 1" type="Lec" suffix="1" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<class id="CHM 101 Lab 1" type="Lab" suffix="1" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="CHM 101 Rec 1" type="Rec" suffix="1" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="0730" endTime="0820" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+<time days="Th" startTime="1130" endTime="1420" timePattern="1 x 150"/>
+<room building="EDUC" roomNbr="106"/>
+</class>
+<class id="CHM 101 Lab 3" type="Lab" suffix="3" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="CHM 101 Rec 3" type="Rec" suffix="3" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="1530" endTime="1620" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<time days="Th" startTime="0730" endTime="1020" timePattern="1 x 150"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+<class id="CHM 101 Lab 2" type="Lab" suffix="2" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="CHM 101 Rec 2" type="Rec" suffix="2" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="0830" endTime="0920" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+<time days="F" startTime="1500" endTime="1750" timePattern="1 x 150"/>
+<room building="EDUC" roomNbr="106"/>
+</class>
+<class id="CHM 101 Lab 4" type="Lab" suffix="4" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="CHM 101 Rec 4" type="Rec" suffix="4" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="M" startTime="1430" endTime="1520" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<time days="T" startTime="1500" endTime="1750" timePattern="1 x 150"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<time days="MW" startTime="1230" endTime="1320" timePattern="2 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+</class>
+</config>
+</offering>
+<offering id="132359" offered="true" action="insert">
+<course id="135761" subject="COM" courseNbr="101" controlling="true" title="Communications I"/>
+<config name="1" limit="9">
+<subpart type="Lec" suffix="" minPerWeek="150"/>
+<class id="COM 101 Lec 6" type="Lec" suffix="6" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="TTh" startTime="0900" endTime="1015" timePattern="2 x 75"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="COM 101 Lec 5" type="Lec" suffix="5" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="TTh" startTime="1630" endTime="1745" timePattern="2 x 75"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="COM 101 Lec 4" type="Lec" suffix="4" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="TTh" startTime="1330" endTime="1445" timePattern="2 x 75"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+<class id="COM 101 Lec 3" type="Lec" suffix="3" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="TTh" startTime="0730" endTime="0845" timePattern="2 x 75"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<class id="COM 101 Lec 9" type="Lec" suffix="9" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="TTh" startTime="0900" endTime="1015" timePattern="2 x 75"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<class id="COM 101 Lec 8" type="Lec" suffix="8" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="TTh" startTime="1030" endTime="1145" timePattern="2 x 75"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+<class id="COM 101 Lec 7" type="Lec" suffix="7" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="TTh" startTime="1500" endTime="1615" timePattern="2 x 75"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<class id="COM 101 Lec 2" type="Lec" suffix="2" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="TTh" startTime="1630" endTime="1745" timePattern="2 x 75"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<class id="COM 101 Lec 1" type="Lec" suffix="1" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="TTh" startTime="0730" endTime="0845" timePattern="2 x 75"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+</config>
+</offering>
+<offering id="132360" offered="true" action="insert">
+<course id="135762" subject="ECON" courseNbr="101" controlling="true" title="Micoeconomics"/>
+<config name="1" limit="4">
+<subpart type="Lec" suffix="" minPerWeek="150"/>
+<class id="ECON 101 Lec 1" type="Lec" suffix="1" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<time days="MWF" startTime="1130" endTime="1220" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+</class>
+</config>
+</offering>
+<offering id="132361" offered="true" action="insert">
+<course id="135763" subject="ENGL" courseNbr="101" controlling="true" title="English"/>
+<config name="1" limit="10">
+<subpart type="Lec" suffix="" minPerWeek="150">
+<subpart type="Lab" suffix="" minPerWeek="50"/>
+</subpart>
+<class id="ENGL 101 Lec 10" type="Lec" suffix="10" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="ENGL 101 Lab 10" type="Lab" suffix="10" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="1430" endTime="1520" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="MWF" startTime="1230" endTime="1320" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="ENGL 101 Lec 9" type="Lec" suffix="9" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="ENGL 101 Lab 9" type="Lab" suffix="9" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="1630" endTime="1720" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="MWF" startTime="0730" endTime="0820" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<class id="ENGL 101 Lec 8" type="Lec" suffix="8" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="ENGL 101 Lab 8" type="Lab" suffix="8" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="Th" startTime="1230" endTime="1320" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="MWF" startTime="0830" endTime="0920" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="ENGL 101 Lec 7" type="Lec" suffix="7" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="ENGL 101 Lab 7" type="Lab" suffix="7" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="0930" endTime="1020" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="MWF" startTime="0930" endTime="1020" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<class id="ENGL 101 Lec 2" type="Lec" suffix="2" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="ENGL 101 Lab 2" type="Lab" suffix="2" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="Th" startTime="1630" endTime="1720" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="MWF" startTime="1530" endTime="1620" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="ENGL 101 Lec 1" type="Lec" suffix="1" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="ENGL 101 Lab 1" type="Lab" suffix="1" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="Th" startTime="1430" endTime="1520" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="MWF" startTime="1630" endTime="1720" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="ENGL 101 Lec 6" type="Lec" suffix="6" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="ENGL 101 Lab 6" type="Lab" suffix="6" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="M" startTime="1530" endTime="1620" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="MWF" startTime="1330" endTime="1420" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+<class id="ENGL 101 Lec 5" type="Lec" suffix="5" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="ENGL 101 Lab 5" type="Lab" suffix="5" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="1630" endTime="1720" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="MWF" startTime="1130" endTime="1220" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<class id="ENGL 101 Lec 4" type="Lec" suffix="4" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="ENGL 101 Lab 4" type="Lab" suffix="4" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="M" startTime="1130" endTime="1220" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="MWF" startTime="1430" endTime="1520" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="ENGL 101 Lec 3" type="Lec" suffix="3" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="ENGL 101 Lab 3" type="Lab" suffix="3" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="Th" startTime="1130" endTime="1220" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="MWF" startTime="1030" endTime="1120" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+</config>
+</offering>
+<offering id="132362" offered="true" action="insert">
+<course id="135764" subject="ENGR" courseNbr="101" controlling="true" title="Freshman Engineering"/>
+<config name="1" limit="3">
+<subpart type="Lec" suffix="" minPerWeek="100"/>
+<subpart type="Lab" suffix="" minPerWeek="100"/>
+<class id="ENGR 101 Lec 1" type="Lec" suffix="1" limit="3" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="TTh" startTime="1430" endTime="1520" timePattern="2 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+</class>
+<class id="ENGR 101 Lab 3" type="Lab" suffix="3" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="0730" endTime="0920" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<class id="ENGR 101 Lab 2" type="Lab" suffix="2" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="M" startTime="0930" endTime="1120" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<class id="ENGR 101 Lab 1" type="Lab" suffix="1" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="0930" endTime="1120" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+</config>
+</offering>
+<offering id="132363" offered="true" action="insert">
+<course id="135765" subject="GER" courseNbr="101" controlling="true" title="German"/>
+<config name="1" limit="4">
+<subpart type="Lec" suffix="" minPerWeek="150">
+<subpart type="Lab" suffix="" minPerWeek="50"/>
+</subpart>
+<class id="GER 101 Lec 2" type="Lec" suffix="2" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="GER 101 Lab 4" type="Lab" suffix="4" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="1330" endTime="1420" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<class id="GER 101 Lab 3" type="Lab" suffix="3" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="T" startTime="1030" endTime="1120" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="MWF" startTime="1230" endTime="1320" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<class id="GER 101 Lec 1" type="Lec" suffix="1" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="GER 101 Lab 1" type="Lab" suffix="1" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="1530" endTime="1620" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<class id="GER 101 Lab 2" type="Lab" suffix="2" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="0830" endTime="0920" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="MWF" startTime="0730" endTime="0820" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+</config>
+</offering>
+<offering id="132364" offered="true" action="insert">
+<course id="135766" subject="HIST" courseNbr="101" controlling="true" title="History of the World"/>
+<config name="1" limit="4">
+<subpart type="Lec" suffix="" minPerWeek="150"/>
+<class id="HIST 101 Lec 2" type="Lec" suffix="2" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="MWF" startTime="1430" endTime="1520" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+<class id="HIST 101 Lec 1" type="Lec" suffix="1" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="MWF" startTime="1530" endTime="1620" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+</config>
+</offering>
+<offering id="132365" offered="true" action="insert">
+<course id="135767" subject="LING" courseNbr="101" controlling="true" title="Introduction to Linguistics"/>
+<config name="1" limit="2">
+<subpart type="Lec" suffix="" minPerWeek="150"/>
+<class id="LING 101 Lec 1" type="Lec" suffix="1" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="MWF" startTime="1630" endTime="1720" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+</config>
+</offering>
+<offering id="132366" offered="true" action="insert">
+<course id="135768" subject="MBIO" courseNbr="101" controlling="true" title="Principles of Microbiology"/>
+<config name="1" limit="3">
+<subpart type="Lec" suffix="" minPerWeek="100"/>
+<subpart type="Lab" suffix="" minPerWeek="100"/>
+<class id="MBIO 101 Lec 1" type="Lec" suffix="1" limit="3" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<time days="TTh" startTime="1030" endTime="1120" timePattern="2 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+</class>
+<class id="MBIO 101 Lab 3" type="Lab" suffix="3" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="M" startTime="1330" endTime="1520" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<class id="MBIO 101 Lab 2" type="Lab" suffix="2" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="M" startTime="1530" endTime="1720" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+<class id="MBIO 101 Lab 1" type="Lab" suffix="1" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="M" startTime="1130" endTime="1320" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="107"/>
+</class>
+</config>
+</offering>
+<offering id="132367" offered="true" action="insert">
+<course id="135769" subject="PHAR" courseNbr="101" controlling="true" title="Seminars in Pharmacy"/>
+<config name="1" limit="4">
+<subpart type="Lec" suffix="" minPerWeek="50"/>
+<class id="PHAR 101 Lec 1" type="Lec" suffix="1" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<time days="T" startTime="0830" endTime="0920" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+</class>
+</config>
+</offering>
+<offering id="132368" offered="true" action="insert">
+<course id="135770" subject="PHIL" courseNbr="101" controlling="true" title="Philosophy"/>
+<config name="1" limit="2">
+<subpart type="Lec" suffix="" minPerWeek="150"/>
+<class id="PHIL 101 Lec 1" type="Lec" suffix="1" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="MWF" startTime="1030" endTime="1120" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+</config>
+</offering>
+<offering id="132369" offered="true" action="insert">
+<course id="135771" subject="PHYS" courseNbr="101" controlling="true" title="Physics"/>
+<config name="1" limit="5">
+<subpart type="Lec" suffix="" minPerWeek="100">
+<subpart type="Rec" suffix="" minPerWeek="50">
+<subpart type="Lab" suffix="" minPerWeek="100"/>
+</subpart>
+</subpart>
+<class id="PHYS 101 Lec 2" type="Lec" suffix="2" limit="3" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="PHYS 101 Rec 5" type="Rec" suffix="5" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="PHYS 101 Lab 5" type="Lab" suffix="5" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="Th" startTime="0930" endTime="1120" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="M" startTime="0930" endTime="1020" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="PHYS 101 Rec 4" type="Rec" suffix="4" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="PHYS 101 Lab 4" type="Lab" suffix="4" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="1130" endTime="1320" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="M" startTime="0730" endTime="0820" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="PHYS 101 Rec 3" type="Rec" suffix="3" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="PHYS 101 Lab 3" type="Lab" suffix="3" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="Th" startTime="0730" endTime="0920" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="T" startTime="0930" endTime="1020" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+<time days="TTh" startTime="1330" endTime="1420" timePattern="2 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+</class>
+<class id="PHYS 101 Lec 1" type="Lec" suffix="1" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="PHYS 101 Rec 1" type="Rec" suffix="1" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="PHYS 101 Lab 1" type="Lab" suffix="1" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="F" startTime="1330" endTime="1520" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="Th" startTime="1030" endTime="1120" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<class id="PHYS 101 Rec 2" type="Rec" suffix="2" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="PHYS 101 Lab 2" type="Lab" suffix="2" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="1330" endTime="1520" timePattern="1 x 100"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="Th" startTime="1530" endTime="1620" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="104"/>
+</class>
+<time days="TTh" startTime="1230" endTime="1320" timePattern="2 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+</config>
+</offering>
+<offering id="132370" offered="true" action="insert">
+<course id="135772" subject="POL" courseNbr="101" controlling="true" title="Political Science"/>
+<config name="1" limit="4">
+<subpart type="Lec" suffix="" minPerWeek="150"/>
+<class id="POL 101 Lec 2" type="Lec" suffix="2" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="TTh" startTime="1200" endTime="1315" timePattern="2 x 75"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+<class id="POL 101 Lec 1" type="Lec" suffix="1" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="TTh" startTime="1330" endTime="1445" timePattern="2 x 75"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+</config>
+</offering>
+<offering id="132371" offered="true" action="insert">
+<course id="135773" subject="PSY" courseNbr="101" controlling="true" title="Psychology"/>
+<config name="1" limit="4">
+<subpart type="Lec" suffix="" minPerWeek="150"/>
+<class id="PSY 101 Lec 1" type="Lec" suffix="1" limit="4" studentScheduling="true" displayInScheduleBook="true" cancelled="false" managingDept="0100">
+<time days="MWF" startTime="1330" endTime="1420" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+</class>
+</config>
+</offering>
+<offering id="132372" offered="true" action="insert">
+<course id="135774" subject="SOC" courseNbr="101" controlling="true" title="Sociology"/>
+<config name="1" limit="4">
+<subpart type="Lec" suffix="" minPerWeek="150"/>
+<class id="SOC 101 Lec 2" type="Lec" suffix="2" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="MWF" startTime="1630" endTime="1720" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="102"/>
+</class>
+<class id="SOC 101 Lec 1" type="Lec" suffix="1" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="MWF" startTime="0830" endTime="0920" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+</config>
+</offering>
+<offering id="132373" offered="true" action="insert">
+<course id="135775" subject="SPAN" courseNbr="101" controlling="true" title="Spanish"/>
+<config name="1" limit="4">
+<subpart type="Lec" suffix="" minPerWeek="150">
+<subpart type="Lab" suffix="" minPerWeek="50"/>
+</subpart>
+<class id="SPAN 101 Lec 2" type="Lec" suffix="2" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="SPAN 101 Lab 3" type="Lab" suffix="3" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="M" startTime="0830" endTime="0920" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<class id="SPAN 101 Lab 4" type="Lab" suffix="4" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="1530" endTime="1620" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="TTh" startTime="1630" endTime="1745" timePattern="2 x 75"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+<class id="SPAN 101 Lec 1" type="Lec" suffix="1" limit="2" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<class id="SPAN 101 Lab 2" type="Lab" suffix="2" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="Th" startTime="1330" endTime="1420" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<class id="SPAN 101 Lab 1" type="Lab" suffix="1" limit="1" studentScheduling="true" displayInScheduleBook="true" cancelled="false">
+<time days="W" startTime="1130" endTime="1220" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="108"/>
+</class>
+<time days="TTh" startTime="1500" endTime="1615" timePattern="2 x 75"/>
+<room building="EDUC" roomNbr="103"/>
 </class>
 </config>
 </offering>
