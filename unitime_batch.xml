@@ -782,4 +782,24 @@ This XML file does not appear to have any style information associated with it. 
 </class>
 </config>
 </offering>
+<offering action="insert" offered="true">
+<course controlling="true" courseNbr="101" subject="DLCS" title="AI for Security"/>
+<config limit="10" name="1">
+<subpart minPerWeek="150" suffix="" type="Lec"/>
+<class cancelled="false" displayInScheduleBook="true" limit="10" managingDept="0100" studentScheduling="true" suffix="L1" type="Lec">
+<time days="MWF" endTime="0920" startTime="0830" timePattern="3 x 50"/>
+<room building="EDU" roomNbr="103"/>
+</class>
+</config>
+</offering>
+<offering action="insert" offered="true">
+<course controlling="true" courseNbr="450" subject="MATH" title="Calculus I"/>
+<config limit="50" name="1">
+<subpart minPerWeek="50" suffix="" type="Rec"/>
+<class cancelled="false" displayInScheduleBook="true" limit="50" managingDept="0100" studentScheduling="true" suffix="L1" type="Rec">
+<time days="Th" endTime="1020" startTime="0930" timePattern="1 x 50"/>
+<room building="SCI" roomNbr="106"/>
+</class>
+</config>
+</offering>
 </offerings>
