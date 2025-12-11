@@ -4,6 +4,7 @@ import torch
 import re 
 import datetime 
 import traceback
+import dotenv
 from typing import Type, Any, Optional, ClassVar
 from bs4 import BeautifulSoup 
 
@@ -25,6 +26,9 @@ if PROJECT_ROOT not in sys.path:
 
 from Backend.tool_framework.base_tool import BaseTool
 
+# Load environment variables
+dotenv.load_dotenv()
+
 # --- Pydantic Input Schema ---
 class AddToBatchInput(BaseModel):
     query_text: str = Field(..., description="The full, original email body or query text to be processed.")
@@ -42,9 +46,15 @@ class AddToBatchFileTool(BaseTool):
     offering_model: Optional[Any] = None
     tokenizer: Optional[Any] = None
     
-    # --- HARDCODED PATHS (Matching your working Update Tool) ---
-    base_model_id: str = "Salesforce/codet5p-220m"
-    offering_adapter_path: str = "/home/sysadm/Music/unitime/Offering-nlp-to-xml_update_v2/checkpoint-875"
+    # --- DYNAMIC PATHS (Loaded from .env) ---
+    # Defaulting to 770m if not found in .env
+    base_model_id: str = os.getenv("BASE_MODEL_ID", "Salesforce/codet5p-770m")
+    
+    # Defaulting to your specified path if not found in .env
+    offering_adapter_path: str = os.getenv(
+        "OFFERING_MODEL_PATH", 
+        "/home/sysadm/Music/unitime/unitime_nlp/data_generator/CodeT5p-770m-XML-Tuning/final_adapter"
+    )
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -72,7 +82,7 @@ class AddToBatchFileTool(BaseTool):
 
     def _load_qlora_pipeline(self) -> Any:
         """
-        Loads the model EXACTLY like the working Update tool.
+        Loads the 770M model + Adapter using 4-bit quantization.
         """
         try:
             print(f"--- Loading Base Model: {self.base_model_id} ---")
@@ -164,7 +174,7 @@ class AddToBatchFileTool(BaseTool):
     def _execute(self, query_text: str) -> str:
         if not self.classifier_llm: return "Error: Classifier not loaded."
 
-        # 1. Load Model
+        # 1. Load Model (Lazy Loading)
         if not self.offering_model:
             self.offering_model = self._load_qlora_pipeline()
         
@@ -193,7 +203,7 @@ class AddToBatchFileTool(BaseTool):
             offering_tag = ai_xml.find('offering')
             if not offering_tag: return f"Error: Invalid XML. Output: {xml_output}"
 
-            # --- FIX 3: Safe Correction Logic ---
+            # --- FIX: Subject Consistency Check ---
             course_tag = offering_tag.find('course')
             if course_tag and course_tag.has_attr('courseNbr'):
                 pattern = re.compile(rf"([a-zA-Z]+)\s*{course_tag['courseNbr']}", re.IGNORECASE)
