@@ -39,10 +39,12 @@ class UpdateCourseFileTool(BaseTool):
     offering_model: Optional[Any] = None
     tokenizer: Optional[Any] = None
     
-    # --- HARDCODED PATHS FROM YOUR WORKING SCRIPT ---
-    base_model_id: str = "Salesforce/codet5p-220m"
-    offering_adapter_path: str = "/home/sysadm/Music/unitime/Offering-nlp-to-xml_update_v2/checkpoint-875"
-    
+    # Change to:
+    base_model_id: str = os.getenv("BASE_MODEL_ID", "Salesforce/codet5p-770m")
+    offering_adapter_path: str = os.getenv(
+    "OFFERING_MODEL_PATH", 
+    "/home/sysadm/Music/unitime/unitime_nlp/data_generator/CodeT5p-770m-XML-Tuning/final_adapter"
+)
 
     def __init__(self, **data):
         super().__init__(**data)
