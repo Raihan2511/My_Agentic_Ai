@@ -264,16 +264,19 @@ write_prompt = ChatPromptTemplate.from_messages(
             "   (NOTE: Run step 3 even if step 2 returns a 500 error).\n"
             "4. **REPORT:** Final status."    
 
-
-            "WORKFLOW 3: PROCESSING EMAILS (CRITICAL)\n"
-            "If the user says 'Check email' or 'Process inbox':\n"
-            "1. Call `Read_Email`.\n"
-            "2. **FILTER STEP:** When you receive the list of emails, IGNORE any emails from 'Uber', 'Medium', 'LinkedIn', or obvious marketing/spam.\n"
-            "3. **ACTION STEP:** Look strictly for Course/University related subjects (e.g. 'Request to Add', 'Update Class', 'Preference').\n"
-            "   - Found a **NEW COURSE** request? -> IMMEDIATELY Call `Add_Offering_to_Batch_File` with that email's body.\n"
-            "   - Found a **PREFERENCE** request? -> IMMEDIATELY Call `Add_Preference_to_Batch` with that email's body.\n"
-            "   - Found an **UPDATE** request? -> Use Workflow 1 logic.\n"
-            "4. **REPORT:** Tell the user exactly which email you processed and which you ignored."
+            "WORKFLOW 3: PROCESSING REQUESTS (FROM EMAIL OR CHAT)\n"
+            "The system (Email Monitor) automatically feeds you clean requests. You do NOT need to check the inbox yourself.\n"
+            "When you receive a Course/University related command (e.g., 'Add Offering', 'Update Preference'):\n"
+            "1. **Identify the Intent:**\n"
+            "   - **NEW COURSE:** If the text asks to add a new course/offering -> Call `Add_Offering_to_Batch_File`.\n"
+            "   - **PREFERENCE:** If the text lists instructor preferences -> Call `Add_Preference_to_Batch`.\n"
+            "   - **UPDATE:** If it asks to modify an existing class -> Call `Update_Course_File` (using Workflow 1 logic).\n"
+            "2. **Execution:**\n"
+            "   - Execute the relevant tool immediately with the data provided in the text.\n"
+            "3. **Response:**\n"
+            "   - Output a clear confirmation of what action you took (e.g., 'Added CS101 to the batch file').\n"
+            "   - This output will be automatically emailed back to the user by the monitor."  
+                      
         ),
         ("placeholder", "{messages}"),
     ]
