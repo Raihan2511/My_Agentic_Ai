@@ -27,7 +27,6 @@ const generateMockResponse = (input) => {
   if (lowerInput.includes('test')) return { response: "Initiating Selenium export sequence...\nSUCCESS.", agent: 'TEST', tool_calls: ['Export_Timetable'] };
   if (lowerInput.includes('sync')) return { response: "Starting full synchronization sequence...", agent: 'SYNC', tool_calls: ['Refresh_RAG_Database'] };
   if (lowerInput.includes('import')) return { response: "Importing 'unitime_batch.xml' to database...", agent: 'IMPORT', tool_calls: ['Import_File_to_Unitime'] };
-  if (lowerInput.includes('process') || lowerInput.includes('email')) return { response: "Scanning inbox... Found 1 request. Added to batch.", agent: 'WRITE', tool_calls: ['Read_Email', 'Add_Offering_to_Batch_File'] };
   return { response: "According to the current schedule, CG 101 meets in Room 304.", agent: 'READ', tool_calls: ['Query_Student_Timetable'] };
 };
 
@@ -145,7 +144,6 @@ function App() {
     }
 
     try {
-      // Prepare history for backend
       const history = messages.map(m => ({
         role: m.sender === 'user' ? 'user' : 'bot',
         content: m.text
@@ -154,7 +152,7 @@ function App() {
       const res = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history: history }) // Sending history
+        body: JSON.stringify({ message: text, history: history })
       });
 
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
@@ -191,13 +189,11 @@ function App() {
 
   const quickActions = [
     { label: 'Check Schedule', query: 'Where is my CG 101 class?', icon: Database, desc: 'Student Query' },
-    { label: 'Process Inbox', query: 'Process the new request in the inbox', icon: FileText, desc: 'Admin Task' },
     { label: 'Import Batch', query: 'Import the batch file', icon: Upload, desc: 'System Update' },
     { label: 'Sync Database', query: 'Run the full auto-sync now', icon: RefreshCw, desc: 'Maintenance' },
   ];
 
   const commandBar = [
-    { label: 'Inbox', query: 'Process inbox', icon: FileText },
     { label: 'Import', query: 'Import batch file', icon: Upload },
     { label: 'Sync', query: 'Run sync', icon: RefreshCw },
     { label: 'Test', query: 'Test export', icon: TestTube },
@@ -239,7 +235,6 @@ function App() {
         {/* HEADER */}
         <header className={`h-16 border-b flex items-center justify-between px-6 pl-16 ${isDarkMode ? 'bg-gray-900/50 border-gray-800 backdrop-blur-md' : 'bg-white/80 border-gray-200 backdrop-blur-md'}`}>
           <div className="flex items-center gap-4">
-            {/* DASHBOARD BUTTON */}
             <button onClick={resetToDashboard} className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-wider border ${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
               <LayoutGrid size={14} /> Dashboard
             </button>

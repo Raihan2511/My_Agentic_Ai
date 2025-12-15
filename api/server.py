@@ -8,17 +8,20 @@ import sys
 import os
 import logging
 import asyncio
+
 # Add parent directory to path to import multiagent
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from kurt_multi_agent import app as langgraph_app
 from Backend.Services.model_singleton import global_model_manager
 
+# --- 1. EMAIL MONITOR IMPORT ---
+from Backend.Services.email_monitor import email_monitor 
+
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-# --- LIFESPAN MANAGER (The magic happens here) ---
-from Backend.Services.email_monitor import email_monitor 
 
+# --- LIFESPAN MANAGER ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # --- STARTUP ---
@@ -28,6 +31,7 @@ async def lifespan(app: FastAPI):
     global_model_manager.load_models()
     
     # 2. Start Email Monitor (Background Task)
+    # This runs the email watcher in the background without blocking the chat
     asyncio.create_task(email_monitor.start())
     
     yield
@@ -47,14 +51,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Updated Data Models ---
+# --- Data Models ---
 class Message(BaseModel):
     role: str
     content: str
 
 class ChatRequest(BaseModel):
     message: str
-    history: List[Message] = [] # New: Accept chat history
+    history: List[Message] = [] 
 
 class ChatResponse(BaseModel):
     response: str
@@ -74,8 +78,6 @@ async def chat(request: ChatRequest):
         logger.info(f"Received message: {request.message}")
         
         # 1. Reconstruct the state from history
-        # LangGraph expects a list of tuples or objects for messages
-        # We map 'user' -> 'human' and 'bot' -> 'ai' for LangChain/LangGraph compatibility
         messages = []
         for msg in request.history:
             if msg.role == "user":
@@ -93,8 +95,11 @@ async def chat(request: ChatRequest):
         tools_called = []
         final_response = ""
 
-        # Stream through the graph to capture events
-        for event in langgraph_app.stream(state):
+        # --- CRITICAL FIX START ---
+        # Use 'async for' with 'astream' to prevent blocking the server
+        async for event in langgraph_app.astream(state):
+            
+            # Use .items() to get both the node name (key) and the output (value)
             for node, output in event.items():
                 
                 # Detect Agent
@@ -124,6 +129,7 @@ async def chat(request: ChatRequest):
                         name = getattr(tool_msg, "name", None)
                         if name and name not in tools_called:
                             tools_called.append(name)
+        # --- CRITICAL FIX END ---
 
         # Fallback if response is empty
         if not final_response:

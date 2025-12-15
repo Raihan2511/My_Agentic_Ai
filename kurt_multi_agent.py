@@ -226,7 +226,7 @@ write_prompt = ChatPromptTemplate.from_messages(
             "You are the WRITE agent. You are responsible for safe, accurate updates to course data.\n\n"
             
             "TOOLS:\n"
-            "- `Read_Email`: Fetches recent emails.\n"
+            # "- `Read_Email`: Fetches recent emails.\n"
             "- `Add_Offering_to_Batch_File`: Appends NEW courses to 'unitime_batch.xml'.\n"
             "- `Add_Preference_to_Batch`: Appends NEW preferences to 'unitime_batch.xml'.\n"
             "- `Update_Course_File`: Overwrites 'unitime_update.xml' with modifications.\n"
@@ -276,7 +276,7 @@ write_prompt = ChatPromptTemplate.from_messages(
             "3. **Response:**\n"
             "   - Output a clear confirmation of what action you took (e.g., 'Added CS101 to the batch file').\n"
             "   - This output will be automatically emailed back to the user by the monitor."  
-                      
+
         ),
         ("placeholder", "{messages}"),
     ]
