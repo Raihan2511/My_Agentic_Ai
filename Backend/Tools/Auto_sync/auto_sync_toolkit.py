@@ -1,3 +1,4 @@
+# /home/sysadm/Music/My_Agentic_Ai/Backend/Tools/Auto_sync/auto_sync_toolkit.py
 import os
 import sys
 from abc import ABC
@@ -31,6 +32,6 @@ class AutoSyncToolkit(BaseToolkit, ABC):
         return [
             ToolConfiguration(key="UNITIME_USERNAME", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=True),
             ToolConfiguration(key="UNITIME_PASSWORD", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=True),
-            ToolConfiguration(key="UNITIME_BASE_URL", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=False, default="http://localhost:8080/UniTime"),
+            ToolConfiguration(key="EXPORT_BASE_URL", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=False, default="http://localhost:8080/UniTime"),
             ToolConfiguration(key="SCHEDULE_EXPORT_PATH", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=False, default=os.path.join(PROJECT_ROOT, "schedule_export.csv"))
         ]

@@ -1,3 +1,4 @@
+# /home/sysadm/Music/My_Agentic_Ai/Backend/Tools/university/add_preference_to_batch.py
 import os
 import sys
 import torch
@@ -6,13 +7,8 @@ from typing import Type, Any, Optional, ClassVar
 from bs4 import BeautifulSoup 
 
 from pydantic import BaseModel, Field
-from langchain_google_genai import ChatGoogleGenerativeAI
-from transformers import (
-    AutoModelForSeq2SeqLM,
-    AutoTokenizer, 
-    BitsAndBytesConfig
-)
-from peft import PeftModel
+# --- KRUTRIM IMPORT ---
+from langchain_openai import ChatOpenAI
 
 # --- Project Path Setup ---
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
@@ -20,6 +16,8 @@ if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
 from Backend.tool_framework.base_tool import BaseTool
+# --- IMPORT SINGLETON ---
+from Backend.Services.model_singleton import global_model_manager
 
 class AddPreferenceInput(BaseModel):
     query_text: str = Field(..., description="The full, original text requesting the preference update.")
@@ -33,107 +31,114 @@ class AddPreferenceToBatchTool(BaseTool):
 
     # --- Attributes ---
     classifier_llm: Optional[Any] = None
-    preference_model: Optional[Any] = None
+    pref_model: Optional[Any] = None
     tokenizer: Optional[Any] = None
-    base_model_id: Optional[str] = None
-    preference_adapter_path: Optional[str] = None
 
     def __init__(self, **data):
         super().__init__(**data)
         self._initialize_classifier()
-        self.base_model_id = self.get_tool_config("BASE_MODEL_ID")
-        # Uses the specific PREFERENCE path from your .env
-        self.preference_adapter_path = self.get_tool_config("PREFERENCE_MODEL_PATH")
 
     def _initialize_classifier(self):
         if self.classifier_llm: return
         try:
-            google_api_key = self.get_tool_config("GOOGLE_API_KEY")
-            self.classifier_llm = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash-lite", 
-                google_api_key=google_api_key,
+            # --- KRUTRIM CONFIGURATION ---
+            krutrim_api_key = self.get_tool_config("KRUTRIM_API_KEY") or os.getenv("KRUTRIM_API_KEY")
+            model_name = os.getenv("LLM_MODEL", "Qwen3-Next-80B-A3B-Instruct")
+
+            if not krutrim_api_key:
+                print("Warning: KRUTRIM_API_KEY missing. Classifier will not work.")
+                return
+
+            self.classifier_llm = ChatOpenAI(
+                model=model_name,
+                api_key=krutrim_api_key,
+                base_url="https://cloud.olakrutrim.com/v1",
                 temperature=0.0
             )
         except Exception as e:
             print(f"Error: Failed to initialize Classifier LLM. Exception: {e}")
 
-    def _load_qlora_pipeline(self) -> Any:
-        try:
-            if not self.tokenizer:
-                self.tokenizer = AutoTokenizer.from_pretrained(self.base_model_id, trust_remote_code=True, use_fast=False)
-            
-            bnb_config = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_compute_dtype=torch.float16,
-            )
-            
-            base_model = AutoModelForSeq2SeqLM.from_pretrained(
-                self.base_model_id,
-                quantization_config=bnb_config,
-                device_map="auto",
-                trust_remote_code=True,
-            )
-            print(f"Loading Preference Adapter: {self.preference_adapter_path}")
-            model = PeftModel.from_pretrained(base_model, self.preference_adapter_path)
-            model.eval()
-            return model
-        except Exception as e:
-            print(f"Error loading Preference Model: {e}")
-            return None
-
     def _sanitize_prompt_for_model(self, text: str) -> str:
-        # Specific prompt for Preferences to standardize input for the model
+        # 1. Use LLM to extract the core intent (clean up email headers, signatures, etc.)
         system_prompt = """
         You are a Data Formatter for University Instructor Preferences. 
-        Convert the user request into a standard prompt like:
-        "INSTRUCTOR PREFERENCE REQUEST: Instructor [Name] [Action: Add/Update] [Type: Room/Time/Distribution] Preference [Level: Required/Strongly Preferred] for [Details]."
+        Extract the core preference request and format it exactly like these examples:
         
         Examples:
-        - "Instructor Doe needs a Projector" -> "INSTRUCTOR PREFERENCE REQUEST: Instructor Doe Add Room Preference Required for Projector."
-        - "Prof Smith cannot teach on Mondays" -> "INSTRUCTOR PREFERENCE REQUEST: Instructor Smith Add Time Preference Prohibited for Monday."
+        - "Instructor Doe needs a Projector" -> "For instructor Doe, make the room preference Required for Projector."
+        - "Prof Smith cannot teach on Mondays" -> "For instructor Smith, make the time slot M prohibited."
+        - "JOE DOE needs time slot T 1630-1830 required" -> "For instructor JOE DOE, make the time slot T 1630-1830 required."
         
         Input Text:
         """
         try:
-            return self.classifier_llm.invoke(f"{system_prompt}\n\"{text}\"\n\nOUTPUT:").content.strip().strip('"')
-        except:
+            full_prompt = f"{system_prompt}\n\"{text}\"\n\nOUTPUT:"
+            response = self.classifier_llm.invoke(full_prompt)
+            clean_text = response.content.strip().strip('"')
+            return clean_text
+        except Exception as e:
+            print(f"Error sanitizing prompt: {e}")
             return text
 
+    def _get_batch_file_path(self) -> str:
+        return os.path.join(PROJECT_ROOT, self.BATCH_FILE_NAME)
+
     def _ensure_batch_file_exists(self) -> str:
-        batch_file_path = os.path.join(PROJECT_ROOT, self.BATCH_FILE_NAME)
+        batch_file_path = self._get_batch_file_path()
         if not os.path.exists(batch_file_path):
             timestamp = datetime.datetime.now().strftime("%a %b %d %H:%M:%S %Z %Y")
             xml_header = f"""<?xml version="1.0" encoding="UTF-8"?>
 <offerings campus="woebegon" year="2010" term="Fal" dateFormat="yyyy/M/d" timeFormat="HHmm" created="{timestamp}" includeExams="none">"""
             xml_footer = """
 </offerings>"""
-            with open(batch_file_path, "w", encoding="utf-8") as f:
-                f.write(f"{xml_header}\n{xml_footer}")
+            try:
+                with open(batch_file_path, "w", encoding="utf-8") as f:
+                    f.write(f"{xml_header}\n{xml_footer}")
+            except Exception as e:
+                return f"Error: Failed to create new batch file: {e}"
         return "Success"
 
     def _execute(self, query_text: str) -> str:
-        if not self.classifier_llm or not self.base_model_id: return "Error: Config missing."
+        if not self.classifier_llm: return "Error: Classifier (Krutrim) not loaded."
 
-        # 1. Load Model
-        if not self.preference_model:
-            self.preference_model = self._load_qlora_pipeline()
-        if not self.preference_model: return "Error: Preference Model failed to load."
+        # 1. Load Preference Model (From Singleton)
+        if global_model_manager.preference_model is None:
+            print("⚠️ Preference model not cached. Loading now...")
+            global_model_manager.load_models()
+        
+        self.pref_model = global_model_manager.preference_model
+        self.tokenizer = global_model_manager.preference_tokenizer
+        
+        if not self.pref_model: 
+            return "Error: Preference Model failed to load from Singleton."
 
-        # 2. Sanitize
-        sanitized_prompt = self._sanitize_prompt_for_model(query_text)
-        print(f"Preference Prompt: {sanitized_prompt}")
+        # 2. Sanitize & Format
+        clean_text = self._sanitize_prompt_for_model(query_text)
+        
+        # --- CRITICAL FIX: MATCH TRAINING DATA FORMAT ---
+        # Training used: f"Prompt: {prompt}\nXML:"
+        formatted_input = f"Prompt: {clean_text}\nXML:"
+        
+        print(f"Preference Model Input: {formatted_input}")
 
         # 3. Generate
         try:
-            inputs = self.tokenizer(sanitized_prompt, return_tensors="pt").to(self.preference_model.device)
+            inputs = self.tokenizer(formatted_input, return_tensors="pt").to(self.pref_model.device)
             with torch.no_grad():
-                outputs = self.preference_model.generate(
-                    input_ids=inputs["input_ids"], attention_mask=inputs["attention_mask"],
-                    max_new_tokens=512, num_beams=4,
-                    pad_token_id=self.tokenizer.pad_token_id, eos_token_id=self.tokenizer.eos_token_id,
+                outputs = self.pref_model.generate(
+                    input_ids=inputs["input_ids"], 
+                    attention_mask=inputs["attention_mask"],
+                    max_new_tokens=512, 
+                    num_beams=4,
+                    pad_token_id=self.tokenizer.pad_token_id, 
+                    eos_token_id=self.tokenizer.eos_token_id,
                 )
-            xml_output = self.tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
+            xml_output = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+            
+            # --- CRITICAL FIX: REMOVE ARTIFACTS ---
+            # Training notebook showed explicit removal of <pad>
+            xml_output = xml_output.replace("<pad>", "").strip()
+            
         except Exception as e:
             return f"Error during inference: {e}"
 
@@ -143,9 +148,7 @@ class AddPreferenceToBatchTool(BaseTool):
             # We'll assume the model outputs a valid XML block.
             ai_xml = BeautifulSoup(xml_output, 'xml')
             
-            # Find the first meaningful child tag (not strictly <offering> since this is preference)
-            # Adjust this based on what your Preference Model outputs!
-            # Common tags: <instructorCoursePref>, <preference>, <update>
+            # Find the first meaningful child tag
             pref_tag = ai_xml.find(True) 
             
             if not pref_tag: return f"Error: Invalid XML. Output: {xml_output}"
@@ -153,7 +156,7 @@ class AddPreferenceToBatchTool(BaseTool):
             pref_block = str(pref_tag)
             
             self._ensure_batch_file_exists()
-            batch_file_path = os.path.join(PROJECT_ROOT, self.BATCH_FILE_NAME)
+            batch_file_path = self._get_batch_file_path()
 
             with open(batch_file_path, "r", encoding="utf-8") as f:
                 content = f.read()

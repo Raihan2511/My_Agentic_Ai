@@ -29,10 +29,8 @@ class RAGToolkit(BaseToolkit, ABC):
     def get_env_keys(self) -> List[ToolConfiguration]:
         """Defines the environment variables required for the tools in this toolkit."""
         return [
-            # Path to the CSV file the Selenium bot exports
             ToolConfiguration(key="SCHEDULE_EXPORT_PATH", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=False, default=os.path.join(PROJECT_ROOT, "schedule_export.csv")),
-            # Path to store the FAISS vector index
             ToolConfiguration(key="RAG_INDEX_PATH", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=False, default=os.path.join(PROJECT_ROOT, "faiss_index")),
-            # We also need the GOOGLE_API_KEY for the LLM in the query tool
-            ToolConfiguration(key="GOOGLE_API_KEY", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=True)
+            # CHANGED: Switched to KRUTRIM_API_KEY
+            ToolConfiguration(key="KRUTRIM_API_KEY", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=True)
         ]

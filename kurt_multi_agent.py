@@ -99,26 +99,27 @@ read_tools_raw = [
 ]
 
 # WRITE → All admin tools (Email, Add, Update, Prefs, Factory)
+# WRITE → Admin tools (Add, Update, Prefs, Factory) PLUS Import & Sync
+# (Email tools removed as requested)
 write_tools_raw = [
-    t for t in email_toolkit.get_tools()
-    if t.name == "Read_Email"
+    t for t in university_toolkit.get_tools() if t.name == "Add_Offering_to_Batch_File"
 ] + [
-    t for t in university_toolkit.get_tools()
-    if t.name == "Add_Offering_to_Batch_File"
+    t for t in university_toolkit.get_tools() if t.name == "Update_Course_File"
 ] + [
-    t for t in university_toolkit.get_tools()
-    if t.name == "Update_Course_File"
+    t for t in rag_toolkit.get_tools() if t.name == "Query_Student_Timetable"
 ] + [
-    t for t in rag_toolkit.get_tools()
-    if t.name == "Query_Student_Timetable"
+    t for t in university_toolkit.get_tools() if t.name == "Model_Prompt_Factory"
 ] + [
-    t for t in university_toolkit.get_tools()
-    if t.name == "Model_Prompt_Factory"
+    t for t in university_toolkit.get_tools() if t.name == "Add_Preference_to_Batch"
 ] + [
-    t for t in university_toolkit.get_tools()
-    if t.name == "Add_Preference_to_Batch"
+    # ADDED: Import Tool (So Write Agent can push changes)
+    t for t in university_toolkit.get_tools() if t.name == "Import_File_to_Unitime"
+] + [
+    # ADDED: Sync Tools (So Write Agent can refresh the DB)
+    t for t in auto_sync_toolkit.get_tools() if t.name == "Export_Timetable"
+] + [
+    t for t in rag_toolkit.get_tools() if t.name == "Refresh_RAG_Database"
 ]
-
 
 # SYNC → Export_Timetable + Refresh_RAG_Database
 sync_tools_raw = [
@@ -231,19 +232,39 @@ write_prompt = ChatPromptTemplate.from_messages(
             "- `Update_Course_File`: Overwrites 'unitime_update.xml' with modifications.\n"
             "- `Query_Student_Timetable`: Fetches current course details (Room, Time, Title, etc.).\n"
             "- `Model_Prompt_Factory`: Converts data into the EXACT training string for updates.\n\n"
-            
-            "WORKFLOW 1: UPDATING A COURSE\n"
-            "If user wants to update/modify a course (e.g., 'Change title of DLCS 101'):\n"
-            "1. **FETCH:** Call `Query_Student_Timetable` for the ID.\n"
-            "2. **MERGE:** Compare Current vs. Request.\n"
-            "3. **FORMAT:** Call `Model_Prompt_Factory`.\n"
-            "4. **EXECUTE:** Call `Update_Course_File`.\n"
-            "5. **REPORT:** Success.\n\n"
-            
-            "WORKFLOW 2: ADDING DATA\n"
-            "- If adding a **COURSE**: Call `Add_Offering_to_Batch_File` with the request text.\n"
-            "- If adding a **PREFERENCE**: Call `Add_Preference_to_Batch` with the request text.\n\n"
-            
+
+            "WORKFLOW 1: UPDATING A COURSE (Smart Verification)\n"
+            "If user wants to update/modify a course (e.g., 'Change title of DLCS 101' OR 'Change title of DLCS'):\n"
+            "1. **FETCH & VERIFY:**\n"
+            "   - Call `Query_Student_Timetable` with a DETAILED request: 'Provide the Class Name, Title, Room, Time, Days, and Capacity for [User's Course Input]'.\n"
+            "   - **CRITICAL:** If the result contains 'I'm sorry' or 'not have that information':\n"
+            "     - Call `Query_Student_Timetable` again with: 'List all courses with Subject [Subject] AND provide their Room, Time, and Capacity'.\n"
+            "2. **DISAMBIGUATE:**\n"
+            "   - **CASE A (Multiple Matches):** If the search returns MULTIPLE courses, **STOP** and ask: 'I found multiple courses: [List them]. Which one do you want to update?'\n"
+            "   - **CASE B (Mismatch):** If the search returns a course that doesn't match the request (e.g., found 'DLCS 000' but user said 'DLCS 101'), **STOP** and ask: 'I found DLCS 000, but not 101. Do you want to update DLCS 000?'\n"
+            "   - **CASE C (No Matches):** Report 'Not possible: Course not found in database.'\n"
+            "3. **MERGE DATA (CRITICAL):**\n"
+            "   - From the RAG tool output, CAREFULLY EXTRACT the existing **Room**, **Time** (Start-End), **Days**, and **Capacity**.\n"
+            "   - Do NOT use 'Unknown' or '0' unless the RAG tool explicitly says so.\n"
+            "   - If the RAG output is missing these details, STOP and report: 'I found the course but could not retrieve its room/time details.'\n"
+            "   - Override ONLY the specific field the user wants to change (e.g., Title).\n"
+            "4. **FORMAT:** Call `Model_Prompt_Factory` using the MERGED data (Existing Details + User Changes).\n"
+            "5. **EXECUTE:** Call `Update_Course_File`.\n"            
+            "6. **IMPORT:** Call `Import_File_to_Unitime` with `filename='unitime_update.xml'`.\n"
+            "7. **SYNC (MANDATORY):** Call `Export_Timetable`, THEN `Refresh_RAG_Database`.\n"
+            "   (NOTE: Run step 7 even if step 6 returns a 500 error).\n"
+            "8. **REPORT:** Success.\n\n"
+
+
+            "WORKFLOW 2: ADDING DATA (End-to-End)\n"
+            "If adding a **COURSE** or **PREFERENCE**:\n"
+            "1. **EXECUTE:** Call `Add_Offering_to_Batch_File` (Courses) or `Add_Preference_to_Batch` (Preferences).\n"
+            "2. **IMPORT:** Call `Import_File_to_Unitime` with `filename='unitime_batch.xml'`.\n"
+            "3. **SYNC (MANDATORY):** Call `Export_Timetable`, THEN `Refresh_RAG_Database`.\n"
+            "   (NOTE: Run step 3 even if step 2 returns a 500 error).\n"
+            "4. **REPORT:** Final status."    
+
+
             "WORKFLOW 3: PROCESSING EMAILS (CRITICAL)\n"
             "If the user says 'Check email' or 'Process inbox':\n"
             "1. Call `Read_Email`.\n"
@@ -271,7 +292,7 @@ sync_prompt = ChatPromptTemplate.from_messages(
             "- `Export_Timetable`: Selenium bot to export the current timetable as CSV.\n"
             "- `Refresh_RAG_Database`: Rebuilds the RAG database from the exported CSV.\n\n"
             "WORKFLOW 3: SYNC (The Full Auto-Sync)\n"
-            "If the user asks to 'run the sync', 'refresh the database', or 'run the auto-sync':\n"
+            "If the user asks to 'run the sync', 'update the databases','refresh the database', or 'run the auto-sync':\n"
             "You MUST perform these steps in order:\n"
             "1. Call `Export_Timetable` to get the currently active schedule.\n"
             "2. AFTER step 1 succeeds, call `Refresh_RAG_Database`.\n"

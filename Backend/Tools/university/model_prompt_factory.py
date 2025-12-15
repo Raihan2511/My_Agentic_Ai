@@ -1,3 +1,4 @@
+# /home/sysadm/Music/My_Agentic_Ai/Backend/Tools/university/model_prompt_factory.py
 from typing import Type
 from pydantic import BaseModel, Field
 from Backend.tool_framework.base_tool import BaseTool
@@ -19,11 +20,11 @@ class ModelPromptFactoryTool(BaseTool):
     args_schema: Type[BaseModel] = PromptFactoryInput
 
     def _execute(self, subject: str, number: str, title: str, building: str, room: str, days: str, start_time: str, end_time: str, capacity: int) -> str:
-        # MATCHES YOUR V2 DATASET GENERATOR EXACTLY
+        # CHANGED: Replaced 'capacity' with 'limit' to match the model's training data
         prompt = (
             f"Update course {subject} {number} "
             f"to title '{title}', room {building} {room}, "
             f"meeting {days} at {start_time}-{end_time} "
-            f"and capacity {capacity}."
+            f"and limit {capacity}."
         )
         return prompt

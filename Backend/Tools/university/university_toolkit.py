@@ -18,7 +18,7 @@ from Backend.Tools.university.add_to_batch_file import AddToBatchFileTool
 from Backend.Tools.university.import_batch_file import ImportBatchFileTool
 from Backend.Tools.university.update_course_file import UpdateCourseFileTool
 from Backend.Tools.university.model_prompt_factory import ModelPromptFactoryTool
-from Backend.Tools.university.add_preference_to_batch import AddPreferenceToBatchTool # <--- NEW IMPORT
+from Backend.Tools.university.add_preference_to_batch import AddPreferenceToBatchTool
 
 class UniversityToolkit(BaseToolkit, ABC):
     name: str = "University Toolkit"
@@ -30,15 +30,16 @@ class UniversityToolkit(BaseToolkit, ABC):
             ImportBatchFileTool(),
             UpdateCourseFileTool(),
             ModelPromptFactoryTool(),
-            AddPreferenceToBatchTool() # <--- NEW TOOL
+            AddPreferenceToBatchTool()
         ]
 
     def get_env_keys(self) -> List[ToolConfiguration]:
         return [
-            ToolConfiguration(key="GOOGLE_API_KEY", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=True),
+            # CHANGED: Switched to KRUTRIM_API_KEY
+            ToolConfiguration(key="KRUTRIM_API_KEY", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=True),
             ToolConfiguration(key="BASE_MODEL_ID", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=False),
             ToolConfiguration(key="OFFERING_MODEL_PATH", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=False),
-            ToolConfiguration(key="PREFERENCE_MODEL_PATH", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=False), # <--- CRITICAL FOR NEW TOOL
+            ToolConfiguration(key="PREFERENCE_MODEL_PATH", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=False),
             ToolConfiguration(key="UNITIME_API_URL", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=False),
             ToolConfiguration(key="UNITIME_USERNAME", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=True),
             ToolConfiguration(key="UNITIME_PASSWORD", key_type=ToolConfigKeyType.STRING, is_required=True, is_secret=True)

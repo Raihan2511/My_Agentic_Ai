@@ -1,3 +1,4 @@
+# /home/sysadm/Music/My_Agentic_Ai/Backend/Tools/rag_system/query_student_timetable.py
 import os
 import sys
 from typing import Type
@@ -12,7 +13,8 @@ from Backend.tool_framework.base_tool import BaseTool
 
 # --- LangChain Imports ---
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
+# FIXED: Using langchain_huggingface to match the Refresh tool
+from langchain_huggingface import HuggingFaceEmbeddings
 # CHANGED: Switched from Google to OpenAI (Krutrim compatible)
 from langchain_openai import ChatOpenAI 
 from langchain_core.prompts import ChatPromptTemplate
@@ -78,7 +80,8 @@ class QueryStudentTimetableTool(BaseTool):
                 allow_dangerous_deserialization=True
             )
 
-            retriever = db.as_retriever(search_kwargs={"k": 3})
+            # FIXED: Increased k to 10 to ensure we find Lectures, not just Exams
+            retriever = db.as_retriever(search_kwargs={"k": 10})
 
         except Exception as e:
             return f"Error: [RAG Query] Failed to load RAG components. {e}"

@@ -1,3 +1,4 @@
+# /home/sysadm/Music/My_Agentic_Ai/Backend/Tools/university/add_to_batch_file.py
 import os
 import sys
 import torch
@@ -12,19 +13,14 @@ from pydantic import BaseModel, Field
 # --- KRUTRIM IMPORT ---
 from langchain_openai import ChatOpenAI
 
-from transformers import (
-    AutoModelForSeq2SeqLM,
-    AutoTokenizer, 
-    BitsAndBytesConfig
-)
-from peft import PeftModel
-
 # --- Project Path Setup ---
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
 from Backend.tool_framework.base_tool import BaseTool
+# --- IMPORT SINGLETON ---
+from Backend.Services.model_singleton import global_model_manager
 
 # Load environment variables
 dotenv.load_dotenv()
@@ -41,21 +37,11 @@ class AddToBatchFileTool(BaseTool):
     
     BATCH_FILE_NAME: ClassVar[str] = "unitime_batch.xml"
 
-    # --- Attributes for ALL models ---
+    # --- Attributes ---
     classifier_llm: Optional[Any] = None
     offering_model: Optional[Any] = None
     tokenizer: Optional[Any] = None
     
-    # --- DYNAMIC PATHS (Loaded from .env) ---
-    # Defaulting to 770m if not found in .env
-    base_model_id: str = os.getenv("BASE_MODEL_ID", "Salesforce/codet5p-770m")
-    
-    # Defaulting to your specified path if not found in .env
-    offering_adapter_path: str = os.getenv(
-        "OFFERING_MODEL_PATH", 
-        "/home/sysadm/Music/unitime/unitime_nlp/data_generator/CodeT5p-770m-XML-Tuning/final_adapter"
-    )
-
     def __init__(self, **data):
         super().__init__(**data)
         self._initialize_classifier()
@@ -79,48 +65,6 @@ class AddToBatchFileTool(BaseTool):
             )
         except Exception as e:
             print(f"Error: Failed to initialize Classifier LLM. Exception: {e}")
-
-    def _load_qlora_pipeline(self) -> Any:
-        """
-        Loads the 770M model + Adapter using 4-bit quantization.
-        """
-        try:
-            print(f"--- Loading Base Model: {self.base_model_id} ---")
-            
-            # 1. Quantization
-            bnb_config = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_compute_dtype=torch.float16,
-            )
-            
-            # 2. Base Model
-            base_model = AutoModelForSeq2SeqLM.from_pretrained(
-                self.base_model_id,
-                quantization_config=bnb_config,
-                device_map="auto",
-                trust_remote_code=True,
-            )
-            
-            # 3. Tokenizer
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                self.base_model_id,
-                trust_remote_code=True,
-                use_fast=False
-            )
-            
-            # 4. Adapter
-            print(f"--- Loading Adapter: {self.offering_adapter_path} ---")
-            model = PeftModel.from_pretrained(base_model, self.offering_adapter_path)
-            model.eval()
-            
-            print("--- Model Loaded Successfully ---")
-            return model
-
-        except Exception as e:
-            print(f"CRITICAL ERROR LOADING MODEL: {e}")
-            traceback.print_exc()
-            return None
 
     def _classify_intent(self, query: str) -> str:
         return "Course_Offering"
@@ -174,9 +118,13 @@ class AddToBatchFileTool(BaseTool):
     def _execute(self, query_text: str) -> str:
         if not self.classifier_llm: return "Error: Classifier not loaded."
 
-        # 1. Load Model (Lazy Loading)
-        if not self.offering_model:
-            self.offering_model = self._load_qlora_pipeline()
+        # 1. Load Model (From Singleton)
+        if global_model_manager.offering_model is None:
+            print("⚠️ Offering model not cached. Loading now...")
+            global_model_manager.load_models()
+        
+        self.offering_model = global_model_manager.offering_model
+        self.tokenizer = global_model_manager.offering_tokenizer
         
         if not self.offering_model: 
             return "Error: Model failed to load. Check console for details."

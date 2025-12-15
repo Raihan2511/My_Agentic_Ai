@@ -1,23 +1,43 @@
+# /home/sysadm/Music/My_Agentic_Ai/api/server.py
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager 
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import sys
 import os
 import logging
-
+import asyncio
 # Add parent directory to path to import multiagent
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# Import the compiled graph from your multi_agent.py
-# Ensure multi_agent.py has `app = workflow.compile()` accessible
 from kurt_multi_agent import app as langgraph_app
+from Backend.Services.model_singleton import global_model_manager
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+# --- LIFESPAN MANAGER (The magic happens here) ---
+from Backend.Services.email_monitor import email_monitor 
 
-app = FastAPI(title="University Assistant API")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # --- STARTUP ---
+    logger.info("🚀 Server Starting...")
+    
+    # 1. Load Models
+    global_model_manager.load_models()
+    
+    # 2. Start Email Monitor (Background Task)
+    asyncio.create_task(email_monitor.start())
+    
+    yield
+    
+    # --- SHUTDOWN ---
+    email_monitor.is_running = False
+    logger.info("🛑 Server Shutting Down...")
+
+# Pass lifespan to FastAPI
+app = FastAPI(title="University Assistant API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -125,4 +145,4 @@ async def chat(request: ChatRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000,reload=True)
+    uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)

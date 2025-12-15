@@ -71,4 +71,45 @@
 </class>
 </config>
 </offering>
+<offering action="insert" offered="true">
+<course controlling="true" courseNbr="101" subject="AOL" title="Approximation Algorithm"/>
+<config limit="5" name="1">
+<subpart minPerWeek="100" suffix="" type="Lab"/>
+<class cancelled="false" displayInScheduleBook="true" limit="5" managingDept="0100" studentScheduling="true" suffix="L1" type="Lab">
+<time days="TTH" endTime="1220" startTime="1030" timePattern="2 x 50"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+</config>
+</offering>
+<offering action="insert" offered="true">
+<course controlling="true" courseNbr="000" subject="DLCS" title="DEEP LEARNING"/>
+<config limit="15" name="1">
+<subpart minPerWeek="50" suffix="" type="Lab"/>
+<class cancelled="false" displayInScheduleBook="true" limit="15" managingDept="0100" studentScheduling="true" suffix="L1" type="Lab">
+<time days="Thursday" endTime="1530" startTime="1330" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="103"/>
+</class>
+</config>
+</offering>
+
+<offering action="insert" offered="true">
+<course controlling="true" courseNbr="101" subject="ECN" title="Econemetrics"/>
+<config limit="50" name="1">
+<subpart minPerWeek="150" suffix="" type="Lab"/>
+<class cancelled="false" displayInScheduleBook="true" limit="50" managingDept="0100" studentScheduling="true" suffix="L1" type="Lab">
+<time days="MWF" endTime="0920" startTime="0830" timePattern="3 x 50"/>
+<room building="EDUC" roomNbr="106"/>
+</class>
+</config>
+</offering>
+<offering action="insert" offered="true">
+<course controlling="true" courseNbr="101" subject="DBMS" title="Database"/>
+<config limit="10" name="1">
+<subpart minPerWeek="100" suffix="" type="Lab"/>
+<class cancelled="false" displayInScheduleBook="true" limit="10" managingDept="0100" studentScheduling="true" suffix="L1" type="Lab">
+<time days="TTh" endTime="1520" startTime="1430" timePattern="2 x 50"/>
+<room building="EDUC" roomNbr="101"/>
+</class>
+</config>
+</offering>
 </offerings>

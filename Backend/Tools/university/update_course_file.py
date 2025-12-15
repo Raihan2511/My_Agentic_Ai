@@ -1,3 +1,4 @@
+# /home/sysadm/Music/My_Agentic_Ai/Backend/Tools/university/update_course_file.py
 import os
 import sys
 import torch
@@ -10,19 +11,14 @@ from pydantic import BaseModel, Field
 # --- KRUTRIM IMPORT ---
 from langchain_openai import ChatOpenAI
 
-from transformers import (
-    AutoModelForSeq2SeqLM,
-    AutoTokenizer, 
-    BitsAndBytesConfig
-)
-from peft import PeftModel
-
 # --- Project Path Setup ---
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
 from Backend.tool_framework.base_tool import BaseTool
+# --- IMPORT SINGLETON ---
+from Backend.Services.model_singleton import global_model_manager
 
 class UpdateCourseInput(BaseModel):
     query_text: str = Field(..., description="The formatted prompt from Model_Prompt_Factory.")
@@ -39,13 +35,6 @@ class UpdateCourseFileTool(BaseTool):
     offering_model: Optional[Any] = None
     tokenizer: Optional[Any] = None
     
-    # Change to:
-    base_model_id: str = os.getenv("BASE_MODEL_ID", "Salesforce/codet5p-770m")
-    offering_adapter_path: str = os.getenv(
-    "OFFERING_MODEL_PATH", 
-    "/home/sysadm/Music/unitime/unitime_nlp/data_generator/CodeT5p-770m-XML-Tuning/final_adapter"
-)
-
     def __init__(self, **data):
         super().__init__(**data)
         self._initialize_classifier()
@@ -67,63 +56,22 @@ class UpdateCourseFileTool(BaseTool):
         except Exception as e:
             print(f"Warning: Krutrim Classifier failed to init: {e}")
 
-    def _load_qlora_pipeline(self) -> Any:
-        """
-        Loads the model EXACTLY like your working snippet.
-        1. BitsAndBytes Config
-        2. Load Base Model (Salesforce/codet5p-220m)
-        3. Load Tokenizer
-        4. Apply Adapter (PeftModel)
-        """
-        try:
-            print(f"--- Loading Base Model: {self.base_model_id} ---")
-            
-            # 1. Quantization Config
-            bnb_config = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_compute_dtype=torch.float16,
-            )
-
-            # 2. Load Base Model
-            base_model = AutoModelForSeq2SeqLM.from_pretrained(
-                self.base_model_id,
-                quantization_config=bnb_config,
-                device_map="auto",
-                trust_remote_code=True,
-            )
-
-            # 3. Load Tokenizer
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                self.base_model_id,
-                trust_remote_code=True,
-                use_fast=False,
-            )
-
-            # 4. Load Adapter
-            print(f"--- Loading Adapter: {self.offering_adapter_path} ---")
-            model = PeftModel.from_pretrained(base_model, self.offering_adapter_path)
-            model.eval()
-            
-            print("--- Model Loaded Successfully ---")
-            return model
-
-        except Exception as e:
-            print(f"CRITICAL ERROR LOADING MODEL: {e}")
-            import traceback
-            traceback.print_exc()
-            return None
-
     def _get_update_file_path(self) -> str:
         return os.path.join(PROJECT_ROOT, self.UPDATE_FILE_NAME)
 
     def _execute(self, query_text: str) -> str:
-        # Load model if not already loaded
-        if not self.offering_model:
-            self.offering_model = self._load_qlora_pipeline()
+        # --- CHANGED: GET MODEL FROM SINGLETON ---
+        # 1. Load Model (From Singleton)
+        if global_model_manager.offering_model is None:
+            print("⚠️ Offering model not cached. Loading now...")
+            global_model_manager.load_models()
+        
+        self.offering_model = global_model_manager.offering_model
+        self.tokenizer = global_model_manager.offering_tokenizer
         
         if not self.offering_model: 
-            return "Error: Model failed to load. Check console logs for 'CRITICAL ERROR'."
+            return "Error: Model failed to load. Check console for details."
+        # -----------------------------------------
 
         print(f"--- Generating XML for: {query_text} ---")
 
