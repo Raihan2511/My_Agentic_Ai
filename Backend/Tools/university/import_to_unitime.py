@@ -80,7 +80,6 @@ import sys
 import requests
 from requests.auth import HTTPBasicAuth 
 from pydantic import BaseModel, Field
-from typing import Optional, Any
 from typing import Type
 
 # --- Project Path Setup ---
@@ -90,30 +89,28 @@ if PROJECT_ROOT not in sys.path:
 
 from Backend.tool_framework.base_tool import BaseTool
 
-# --- Pydantic Input Schema (UPDATED) ---
-class ImportToUnitimeInput(BaseModel):
-    # The tool now expects the filename to read from
-    filename: str = Field(..., description="The name of the local XML batch file to import (e.g., 'unitime_batch.xml' for inserts or 'unitime_update.xml' for updates).")
+# --- Pydantic Input Schema ---
+class ImportBatchFileInput(BaseModel):
+    # KEY CHANGE: We ask the AI to tell us WHICH file to import
+    filename: str = Field(..., description="The name of the XML file to import. Use 'unitime_batch.xml' for new courses (inserts) or 'unitime_update.xml' for updates.")
 
-# --- Tool Class Definition (UPDATED) ---
-class ImportToUnitimeTool(BaseTool):
+# --- Tool Class Definition ---
+class ImportBatchFileTool(BaseTool):
     """
     A tool that reads XML data from a specified local file and sends it to the 
     UniTime dataexchange API endpoint for processing.
     """
-    # Renamed to match the agent's workflow (Import_Batch_File_to_Unitime)
-    name: str = "Import_Batch_File_to_Unitime" 
-    description: str = "Imports the content of a specified local XML file (e.g., unitime_batch.xml or unitime_update.xml) into the UniTime system via the API."
-    args_schema: Type[BaseModel] = ImportToUnitimeInput
+    name: str = "Import_File_to_Unitime" 
+    description: str = "Imports a specific local XML file into UniTime. You must specify if you are importing the batch file or the update file."
+    args_schema: Type[BaseModel] = ImportBatchFileInput
     
-    # Updated signature to accept filename
     def _execute(self, filename: str) -> str:
         
-        # --- Step 1: Read XML Data from Local File ---
+        # --- Step 1: Read XML Data from the Requested File ---
         file_path = os.path.join(PROJECT_ROOT, filename)
         
         if not os.path.exists(file_path):
-            return f"Error: The batch file '{filename}' was not found at path {file_path}. Cannot proceed with import."
+            return f"Error: The file '{filename}' was not found. Please generate the file first before importing."
             
         try:
             with open(file_path, "r", encoding="utf-8") as f:
@@ -127,7 +124,7 @@ class ImportToUnitimeTool(BaseTool):
         password = self.get_tool_config("UNITIME_PASSWORD") 
         
         if not api_url or not username or not password:
-            return "Error: Missing UNITIME_API_URL, UNITIME_USERNAME, or UNITIME_PASSWORD in the environment configuration."
+            return "Error: Missing UNITIME credentials in configuration."
 
         headers = {
             "Content-Type": "application/xml;charset=UTF-8"
@@ -135,23 +132,24 @@ class ImportToUnitimeTool(BaseTool):
         
         # --- Step 3: API Request ---
         try:
-            print(f"--- ATTEMPTING TO POST XML from '{filename}' TO {api_url} using Basic Auth ---")
+            print(f"--- ATTEMPTING TO POST XML from '{filename}' TO UniTime ---")
             
             response = requests.post(
                 api_url, 
-                data=unitime_xml_data.encode('utf-8'), # Use the content read from the file
+                data=unitime_xml_data.encode('utf-8'), 
                 headers=headers,
-                auth=HTTPBasicAuth(username, password)
+                auth=HTTPBasicAuth(username, password),
+                timeout=30
             )
             
             response.raise_for_status() 
             
             if "text/html" in response.headers.get("Content-Type", ""):
-                 return f"Successfully imported data from {filename} to UniTime. Server returned an HTML success page (Status: {response.status_code}). Server response: {response.text}"
+                 return f"Successfully imported {filename}. Server returned HTML status: {response.status_code}."
             
-            return f"Successfully imported data from {filename} to UniTime. Server response: {response.text}"
+            return f"Successfully imported {filename}. Server response: {response.text}"
         
         except requests.exceptions.HTTPError as http_err:
-            return f"Error: HTTP error occurred during UniTime import of {filename}: {http_err} - Response: {http_err.response.text}"
+            return f"Error: HTTP error during import of {filename}: {http_err}"
         except requests.exceptions.RequestException as req_err:
-            return f"Error: A critical request error occurred during import of {filename}: {req_err}"
+            return f"Error: Critical request error for {filename}: {req_err}"

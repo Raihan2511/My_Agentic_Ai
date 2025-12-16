@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<offerings campus="woebegon" year="2010" term="Fal" dateFormat="yyyy/M/d" timeFormat="HHmm" created="Tue Dec 16 18:34:21  2025" includeExams="none" incremental="true">
+<offerings campus="woebegon" year="2010" term="Fal" dateFormat="yyyy/M/d" timeFormat="HHmm" created="Tue Dec 16 20:59:53  2025" includeExams="none" incremental="true">
 <offering action="update" offered="true">
 <course controlling="true" courseNbr="000" subject="DLCS" title="Cyber Security"/>
 <config limit="0" name="1">

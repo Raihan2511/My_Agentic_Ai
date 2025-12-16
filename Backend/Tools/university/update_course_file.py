@@ -114,8 +114,8 @@ class UpdateCourseFileTool(BaseTool):
                         print(f"⚠️ Fixing Subject: {generated_subject} -> {real_subject}")
                         course_tag['subject'] = real_subject
                         
-                        # Fix Title to match Subject_Number
-                        course_tag['title'] = f"{real_subject}_{xml_course_nbr}"
+                        # Fix Title to match Subject_Number - REMOVED to prevent overwriting user title
+                        # course_tag['title'] = f"{real_subject}_{xml_course_nbr}"
 
             # 3. Save
             update_file_path = self._get_update_file_path()

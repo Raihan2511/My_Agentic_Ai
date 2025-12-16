@@ -4,11 +4,9 @@ from pydantic import BaseModel, Field
 from Backend.tool_framework.base_tool import BaseTool
 
 class PromptFactoryInput(BaseModel):
-    subject: str = Field(..., description="Course Subject (e.g., DLCS)")
-    number: str = Field(..., description="Course Number (e.g., 101)")
+    course_name: str = Field(..., description="Course Name (e.g., 'DLCS 000')")
     title: str = Field(..., description="The Course Title (e.g., 'Advanced AI')")
-    building: str = Field(..., description="Full Building Name (e.g., Engineering)")
-    room: str = Field(..., description="Room Number (e.g., 205)")
+    location: str = Field(..., description="Full Location (e.g., 'EDUC 103')")
     days: str = Field(..., description="Days (e.g., MWF)")
     start_time: str = Field(..., description="Start Time HHmm (e.g., 0830)")
     end_time: str = Field(..., description="End Time HHmm (e.g., 0920)")
@@ -19,11 +17,12 @@ class ModelPromptFactoryTool(BaseTool):
     description: str = "Constructs the exact training prompt string required by the AI model for updates."
     args_schema: Type[BaseModel] = PromptFactoryInput
 
-    def _execute(self, subject: str, number: str, title: str, building: str, room: str, days: str, start_time: str, end_time: str, capacity: int) -> str:
+    def _execute(self, course_name: str, title: str, location: str, days: str, start_time: str, end_time: str, capacity: int) -> str:
         # CHANGED: Replaced 'capacity' with 'limit' to match the model's training data
+        # CHANGED: Using combined course_name and location fields
         prompt = (
-            f"Update course {subject} {number} "
-            f"to title '{title}', room {building} {room}, "
+            f"Update course {course_name} "
+            f"to title '{title}', room {location}, "
             f"meeting {days} at {start_time}-{end_time} "
             f"and limit {capacity}."
         )
