@@ -27,7 +27,7 @@ class AddPreferenceToBatchTool(BaseTool):
     description: str = "Processes a request to add Instructor Preferences (Time, Room, Distribution) and appends XML to the batch file."
     args_schema: Type[BaseModel] = AddPreferenceInput
     
-    BATCH_FILE_NAME: ClassVar[str] = "unitime_batch.xml"
+    BATCH_FILE_NAME: ClassVar[str] = "unitime_preferences.xml"
 
     # --- Attributes ---
     classifier_llm: Optional[Any] = None

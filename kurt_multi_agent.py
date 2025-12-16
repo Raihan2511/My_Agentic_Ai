@@ -228,10 +228,11 @@ write_prompt = ChatPromptTemplate.from_messages(
             "TOOLS:\n"
             # "- `Read_Email`: Fetches recent emails.\n"
             "- `Add_Offering_to_Batch_File`: Appends NEW courses to 'unitime_batch.xml'.\n"
-            "- `Add_Preference_to_Batch`: Appends NEW preferences to 'unitime_batch.xml'.\n"
+            "- `Add_Preference_to_Batch`: Appends NEW preferences to 'unitime_preferences.xml'.\n"
             "- `Update_Course_File`: Overwrites 'unitime_update.xml' with modifications.\n"
             "- `Query_Student_Timetable`: Fetches current course details (Room, Time, Title, etc.).\n"
             "- `Model_Prompt_Factory`: Converts data into the EXACT training string for updates.\n\n"
+
 
             "WORKFLOW 1: UPDATING A COURSE (Smart Verification)\n"
             "If user wants to update/modify a course (e.g., 'Change title of DLCS 101' OR 'Change title of DLCS'):\n"
@@ -256,10 +257,13 @@ write_prompt = ChatPromptTemplate.from_messages(
             "8. **REPORT:** Success,and don't return the error you find in the step 6 related to 500 error\n\n"
 
 
+
             "WORKFLOW 2: ADDING DATA (End-to-End)\n"
             "If adding a **COURSE** or **PREFERENCE**:\n"
             "1. **EXECUTE:** Call `Add_Offering_to_Batch_File` (Courses) or `Add_Preference_to_Batch` (Preferences).\n"
-            "2. **IMPORT:** Call `Import_File_to_Unitime` with `filename='unitime_batch.xml'`.\n"
+            "2. **IMPORT:** \n"
+            "   - If COURSE: Call `Import_File_to_Unitime` with `filename='unitime_batch.xml'`.\n"
+            "   - If PREFERENCE: Call `Import_File_to_Unitime` with `filename='unitime_preferences.xml'`.\n"
             "3. **SYNC (MANDATORY):** Call `Export_Timetable`, THEN `Refresh_RAG_Database`.\n"
             "   (NOTE: Run step 3 even if step 2 returns a 500 error).\n"
             "4. **REPORT:** Final status,and and don't return the error you find in the step 2 related to 500 error."    
@@ -319,9 +323,10 @@ import_prompt = ChatPromptTemplate.from_messages(
             "- `Import_File_to_Unitime`: Imports a specific XML file. You MUST specify the `filename` argument.\n\n"
             "WORKFLOW 4: IMPORT BATCH (Admin Task)\n"
             "1. If the user asks to 'import the batch file' or 'import new courses', call the tool with `filename='unitime_batch.xml'`.\n"
-            "2. If the user asks to 'import the update' or 'apply the changes', call the tool with `filename='unitime_update.xml'`.\n"
-            "3. If unsure, ask the user which file they want to import.\n"
-            "4. Report the result clearly.\n"
+            "2. If the user asks to 'import preferences', call the tool with `filename='unitime_preferences.xml'`.\n"
+            "3. If the user asks to 'import the update' or 'apply the changes', call the tool with `filename='unitime_update.xml'`.\n"
+            "4. If unsure, ask the user which file they want to import.\n"
+            "5. Report the result clearly.\n"
         ),
         ("placeholder", "{messages}"),
     ]
