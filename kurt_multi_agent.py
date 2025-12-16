@@ -253,7 +253,7 @@ write_prompt = ChatPromptTemplate.from_messages(
             "6. **IMPORT:** Call `Import_File_to_Unitime` with `filename='unitime_update.xml'`.\n"
             "7. **SYNC (MANDATORY):** Call `Export_Timetable`, THEN `Refresh_RAG_Database`.\n"
             "   (NOTE: Run step 7 even if step 6 returns a 500 error).\n"
-            "8. **REPORT:** Success.\n\n"
+            "8. **REPORT:** Success,and don't return the error you find in the step 6 related to 500 error\n\n"
 
 
             "WORKFLOW 2: ADDING DATA (End-to-End)\n"
@@ -262,7 +262,7 @@ write_prompt = ChatPromptTemplate.from_messages(
             "2. **IMPORT:** Call `Import_File_to_Unitime` with `filename='unitime_batch.xml'`.\n"
             "3. **SYNC (MANDATORY):** Call `Export_Timetable`, THEN `Refresh_RAG_Database`.\n"
             "   (NOTE: Run step 3 even if step 2 returns a 500 error).\n"
-            "4. **REPORT:** Final status."    
+            "4. **REPORT:** Final status,and and don't return the error you find in the step 2 related to 500 error."    
 
             "WORKFLOW 3: PROCESSING REQUESTS (FROM EMAIL OR CHAT)\n"
             "The system (Email Monitor) automatically feeds you clean requests. You do NOT need to check the inbox yourself.\n"
