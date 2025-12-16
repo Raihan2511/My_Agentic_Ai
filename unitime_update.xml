@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<offerings campus="woebegon" year="2010" term="Fal" dateFormat="yyyy/M/d" timeFormat="HHmm" created="Mon Dec 08 03:16:01  2025" includeExams="none" incremental="true">
+<offerings campus="woebegon" year="2010" term="Fal" dateFormat="yyyy/M/d" timeFormat="HHmm" created="Tue Dec 16 18:34:21  2025" includeExams="none" incremental="true">
 <offering action="update" offered="true">
-<course controlling="true" courseNbr="1330" subject="AOL" title="APPROXIMATION ONLINE ALGORITHM"/>
-<config limit="15" name="1">
+<course controlling="true" courseNbr="000" subject="DLCS" title="Cyber Security"/>
+<config limit="0" name="1">
 <subpart minPerWeek="50" suffix="" type="Lab"/>
-<class cancelled="false" displayInScheduleBook="true" limit="15" managingDept="0100" studentScheduling="true" suffix="L1" type="Lab">
-<time days="TH" endTime="1530" startTime="1330" timePattern="1 x 50"/>
-<room building="EDU" roomNbr="501"/>
+<class cancelled="false" displayInScheduleBook="true" limit="0" managingDept="0100" studentScheduling="true" suffix="L1" type="Lab">
+<time days="Th" endTime="1530" startTime="1330" timePattern="1 x 50"/>
+<room building="EDUC" roomNbr="103"/>
 </class>
 </config>
 </offering>

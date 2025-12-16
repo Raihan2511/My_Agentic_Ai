@@ -12,6 +12,7 @@ import asyncio
 # Add parent directory to path to import multiagent
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from kurt_multi_agent import app as langgraph_app
+from langchain_core.messages import HumanMessage, AIMessage
 from Backend.Services.model_singleton import global_model_manager
 
 # --- 1. EMAIL MONITOR IMPORT ---
@@ -81,12 +82,12 @@ async def chat(request: ChatRequest):
         messages = []
         for msg in request.history:
             if msg.role == "user":
-                messages.append(("user", msg.content))
+                messages.append(HumanMessage(content=msg.content))
             elif msg.role == "bot":
-                messages.append(("assistant", msg.content))
+                messages.append(AIMessage(content=msg.content))
         
         # Append the new user message
-        messages.append(("user", request.message))
+        messages.append(HumanMessage(content=request.message))
         
         state = {"messages": messages}
         

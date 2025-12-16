@@ -5,6 +5,7 @@ import logging
 import email
 import random
 from email.utils import parseaddr
+from langchain_core.messages import HumanMessage
 
 # Setup Paths
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
@@ -151,7 +152,7 @@ class EmailMonitorService:
             loop.close()
 
     async def _run_agent_async(self, user_text: str) -> str:
-        inputs = {"messages": [("user", user_text)]}
+        inputs = {"messages": [HumanMessage(content=user_text)]}
         final_response = "Processed, but no output was generated."
 
         async for event in agent_app.astream(inputs):
